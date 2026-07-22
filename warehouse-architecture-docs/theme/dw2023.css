@@ -1,0 +1,21 @@
+:root {
+  --dw-accent: #4aa3df;
+  --dw-border: #607d8b;
+}
+
+.content main {
+  max-width: 980px;
+}
+
+table {
+  width: 100%;
+}
+
+blockquote {
+  border-left-color: var(--dw-accent);
+}
+
+code {
+  overflow-wrap: anywhere;
+}
+

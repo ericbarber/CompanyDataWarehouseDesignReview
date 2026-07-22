@@ -1,0 +1,31 @@
+[book]
+title = "DW2023 Warehouse Architecture"
+authors = ["DW2023 Design and Architecture Team"]
+description = "Current-state architecture, data movement, function reference, and modernization design for the DW2023 Databricks warehouse."
+language = "en"
+src = "src"
+
+[build]
+build-dir = "book"
+create-missing = false
+
+[output.html]
+default-theme = "navy"
+preferred-dark-theme = "navy"
+git-repository-url = "../DW2023-Databricks"
+edit-url-template = ""
+additional-css = ["theme/dw2023.css"]
+no-section-label = false
+
+[output.html.fold]
+enable = true
+level = 1
+
+[output.html.search]
+enable = true
+limit-results = 30
+use-boolean-and = true
+boost-title = 2
+boost-hierarchy = 1
+boost-paragraph = 1
+expand = true
