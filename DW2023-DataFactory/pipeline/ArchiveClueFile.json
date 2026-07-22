@@ -1,0 +1,94 @@
+{
+	"name": "ArchiveClueFile",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy clue data to archive",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "BinarySource",
+						"storeSettings": {
+							"type": "SftpReadSettings",
+							"recursive": false,
+							"wildcardFolderPath": {
+								"value": "@replace(pipeline().parameters.environment_path,'/','\\')",
+								"type": "Expression"
+							},
+							"wildcardFileName": {
+								"value": "@pipeline().parameters.fileName",
+								"type": "Expression"
+							},
+							"deleteFilesAfterCompletion": true,
+							"disableChunking": false
+						},
+						"formatSettings": {
+							"type": "BinaryReadSettings"
+						}
+					},
+					"sink": {
+						"type": "BinarySink",
+						"storeSettings": {
+							"type": "SftpWriteSettings",
+							"copyBehavior": "PreserveHierarchy",
+							"operationTimeout": "01:00:00",
+							"useTempFileRename": false
+						}
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "dsSecureFileSystemUserNameBinaryClue",
+						"type": "DatasetReference",
+						"parameters": {
+							"host": "secureftp.sundt.com",
+							"userName": "clueintegrations",
+							"connectionSecretName": "sec-clue-sftp-export",
+							"directory": {
+								"value": "@pipeline().parameters.environment_path",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "dsSecureFileSystemUserNameBinaryClue",
+						"type": "DatasetReference",
+						"parameters": {
+							"host": "secureftp.sundt.com",
+							"userName": "clueintegrations",
+							"connectionSecretName": "sec-clue-sftp-export",
+							"directory": {
+								"value": "@concat(pipeline().parameters.environment_path,'/ARC')",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"fileName": {
+				"type": "string"
+			},
+			"environment_path": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "100_sourceToBronze/FileSystem"
+		},
+		"annotations": []
+	}
+}

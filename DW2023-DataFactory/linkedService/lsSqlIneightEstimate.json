@@ -1,0 +1,21 @@
+{
+	"name": "lsSqlIneightEstimate",
+	"properties": {
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"connectionString": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "lsKeyVaultManagedIdentity",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "sec-ineightestimate-connection-string"
+			}
+		},
+		"connectVia": {
+			"referenceName": "selfHostedIntegrationRuntimeVm01",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

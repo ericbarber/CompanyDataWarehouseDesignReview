@@ -1,0 +1,48 @@
+{
+	"name": "dsSecureFileSystemUserNameZipcodeBinary",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lsSecureFileSystemZipcode",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"host": {
+					"value": "@dataset().host",
+					"type": "Expression"
+				},
+				"userName": {
+					"value": "@dataset().userName",
+					"type": "Expression"
+				},
+				"connectionSecretName": {
+					"value": "@dataset().connectionSecretName",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"host": {
+				"type": "string",
+				"defaultValue": "ftp.zip-codes.com"
+			},
+			"userName": {
+				"type": "string",
+				"defaultValue": "jmlabuff_at_sundt.com"
+			},
+			"connectionSecretName": {
+				"type": "string",
+				"defaultValue": "sec-zipcode-sftp-export"
+			}
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "SftpLocation"
+			},
+			"compression": {
+				"type": "ZipDeflate",
+				"level": "Optimal"
+			}
+		}
+	}
+}

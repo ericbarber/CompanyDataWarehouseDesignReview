@@ -1,0 +1,48 @@
+{
+	"name": "dsSecureFileSystemUserNameCsvClue",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "IsSecureFileSystemUserName",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"host": "@dataset().host",
+				"userName": "@dataset().userName",
+				"connectionSecretName": "@dataset().connectionSecretName"
+			}
+		},
+		"parameters": {
+			"host": {
+				"type": "string",
+				"defaultValue": "secureftp.sundt.com/IN"
+			},
+			"userName": {
+				"type": "string",
+				"defaultValue": "clueintegrations"
+			},
+			"connectionSecretName": {
+				"type": "string",
+				"defaultValue": "sec-clue-sftp-export"
+			},
+			"directory": {
+				"type": "string",
+				"defaultValue": "ClueAsset_202405151209.txt"
+			}
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "SftpLocation",
+				"folderPath": {
+					"value": "/@dataset().directory",
+					"type": "Expression"
+				}
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}

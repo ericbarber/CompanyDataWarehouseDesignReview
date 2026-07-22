@@ -1,0 +1,38 @@
+{
+	"name": "DEV_MonthlyMaintenance",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "plMonthlyMaintenance",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Month",
+				"interval": 1,
+				"startTime": "2026-07-02T15:53:00",
+				"timeZone": "Pacific Standard Time",
+				"schedule": {
+					"minutes": [
+						0
+					],
+					"hours": [
+						8
+					],
+					"monthlyOccurrences": [
+						{
+							"day": "Saturday",
+							"occurrence": -1
+						}
+					]
+				}
+			}
+		}
+	}
+}

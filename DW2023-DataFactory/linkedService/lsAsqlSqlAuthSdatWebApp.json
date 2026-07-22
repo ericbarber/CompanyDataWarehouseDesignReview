@@ -1,0 +1,22 @@
+{
+	"name": "lsAsqlSqlAuthSdatWebApp",
+	"properties": {
+		"description": "Linked service for the sdat database used for the web app",
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"connectionString": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "lsKeyVaultManagedIdentitySdat",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "db-connection-primary"
+			}
+		},
+		"connectVia": {
+			"referenceName": "AutoResolveIntegrationRuntime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

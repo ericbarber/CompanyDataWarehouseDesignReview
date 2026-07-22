@@ -1,0 +1,34 @@
+{
+	"name": "lsRestApiServicePrincipal",
+	"properties": {
+		"parameters": {
+			"baseURL": {
+				"type": "string",
+				"defaultValue": "https://graph.microsoft.com/v1"
+			}
+		},
+		"annotations": [],
+		"type": "RestService",
+		"typeProperties": {
+			"url": "@{linkedService().baseURL}",
+			"enableServerCertificateValidation": true,
+			"authenticationType": "AadServicePrincipal",
+			"servicePrincipalId": "831bd178-2b05-4725-99f8-4aecabfbe28a",
+			"servicePrincipalKey": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "lsKeyVaultManagedIdentityShared",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "powerbi--ClientSecret"
+			},
+			"tenant": "0a53a6aa-2634-48e0-925d-380ca1cd7811",
+			"aadResourceId": "https://analysis.windows.net/powerbi/api"
+		},
+		"connectVia": {
+			"referenceName": "AutoResolveIntegrationRuntime",
+			"type": "IntegrationRuntimeReference"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/linkedservices"
+}

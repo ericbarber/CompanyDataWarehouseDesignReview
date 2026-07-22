@@ -1,0 +1,44 @@
+{
+	"name": "lsAsqlSqlAuth",
+	"properties": {
+		"description": "Azure sql database with sql authentication",
+		"parameters": {
+			"serverName": {
+				"type": "string",
+				"defaultValue": "sdt-sql-customapps-prod-01.database.windows.net"
+			},
+			"databaseName": {
+				"type": "string",
+				"defaultValue": "MprApp"
+			},
+			"passwordSecret": {
+				"type": "string",
+				"defaultValue": "sec-mpr-reader-password"
+			},
+			"userName": {
+				"type": "string",
+				"defaultValue": "SQLUser_MprApp_dbreader"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"connectionString": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=@{linkedService().serverName};Initial Catalog=@{linkedService().databaseName};User ID=@{linkedService().userName}",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "lsKeyVaultManagedIdentity",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": {
+					"value": "@linkedService().passwordSecret",
+					"type": "Expression"
+				}
+			}
+		},
+		"connectVia": {
+			"referenceName": "AutoResolveIntegrationRuntime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

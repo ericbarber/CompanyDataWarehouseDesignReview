@@ -1,0 +1,1285 @@
+{
+	"name": "plMdwToPbiChildWebAppRLSTables",
+	"properties": {
+		"description": "This is the child pipeline used for refreshing a Power BI dataset. This pipeline will trigger a dataset refresh, wait until that refresh finishes, and then indicate whether the refresh either succeeded or failed.\n\nThis pipeline requires that a service principal be created and added as an ADMIN on the PBI workspace of the dataset you wish to refresh. This pipeline also requires that you store the service principal client id and secret in the key vault. It also requires that you store the key vault URI, PBI dataset ID, and PBI workspace ID in the metadata table called adf.azureResources.",
+		"activities": [
+			{
+				"name": "get tenant id",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "define environment for key vault uri",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.01:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": true,
+					"secureInput": true
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": {
+						"value": "@concat(variables('keyVaultUri'),'secrets/',pipeline().parameters.tenantIdSecretName,'?api-version=7.0')",
+						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "AutoResolveIntegrationRuntime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"method": "GET",
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
+					}
+				}
+			},
+			{
+				"name": "get service principal client id",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "define environment for key vault uri",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.01:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": true,
+					"secureInput": true
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": {
+						"value": "@concat(variables('keyVaultUri'),'secrets/',pipeline().parameters.svpClientIdSecretName,'?api-version=7.0')",
+						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "AutoResolveIntegrationRuntime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"method": "GET",
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
+					}
+				}
+			},
+			{
+				"name": "get service principal secret",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "define environment for key vault uri",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.01:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": true,
+					"secureInput": true
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": {
+						"value": "@concat(variables('keyVaultUri'),'secrets/',pipeline().parameters.svpSecretSecretName,'?api-version=7.0')",
+						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "AutoResolveIntegrationRuntime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"method": "GET",
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://vault.azure.net"
+					}
+				}
+			},
+			{
+				"name": "get AAD token",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "get tenant id",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "get service principal client id",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "get service principal secret",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.01:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": {
+						"value": "@concat('https://login.microsoftonline.com/',\nactivity('Get tenant id').output.value,\n'/oauth2/token')",
+						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "AutoResolveIntegrationRuntime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"method": "POST",
+					"headers": {
+						"Content-Type": "application/x-www-form-urlencoded"
+					},
+					"body": {
+						"value": "@concat('grant_type=client_credentials&resource=https://analysis.windows.net/powerbi/api&client_id='\n,activity('Get service principal client id').output.value,\n'&client_secret='\n,encodeUriComponent(activity('Get service principal secret').output.value))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "call dataset refresh",
+				"description": "call dataset refresh api to refresh the RLS tables in the specified dataset in Power BI",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "get AAD token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.01:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": {
+						"value": "@concat('https://api.powerbi.com/v1.0/myorg/groups/'\n,pipeline().parameters.workspaceId\n,'/datasets/'\n,pipeline().parameters.datasetId\n,'/refreshes')",
+						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "AutoResolveIntegrationRuntime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"method": "POST",
+					"headers": {
+						"Authorization": {
+							"value": "@concat(string(activity('Get AAD Token').output.token_type), ' ',\nstring(activity('Get AAD Token').output.access_token))",
+							"type": "Expression"
+						}
+					},
+					"body": {
+						"type": "full",
+						"commitMode": "transactional",
+						"objects": [
+							{
+								"table": "dim_active_directory_user_v"
+							},
+							{
+								"table": "bridge_user_project_relationship_v"
+							},
+							{
+								"table": "dim_project_v"
+							}
+						],
+						"applyRefreshPolicy": "false"
+					}
+				}
+			},
+			{
+				"name": "until refresh complete",
+				"description": "Loop through and check the status of the Power BI dataset refresh for 3 hours. After 3 hours this will timeout.",
+				"type": "Until",
+				"dependsOn": [
+					{
+						"activity": "call dataset refresh",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@not(equals('Unknown', variables('refreshStatus')))",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "get dataset refresh status",
+							"type": "WebActivity",
+							"dependsOn": [
+								{
+									"activity": "get new AAD token",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.01:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"url": {
+									"value": "@concat('https://api.powerbi.com/v1.0/myorg/groups/'\n,pipeline().parameters.workspaceId\n,'/datasets/'\n,pipeline().parameters.datasetId\n,'/refreshes?$top=1')",
+									"type": "Expression"
+								},
+								"connectVia": {
+									"referenceName": "AutoResolveIntegrationRuntime",
+									"type": "IntegrationRuntimeReference"
+								},
+								"method": "GET",
+								"headers": {
+									"Authorization": {
+										"value": "@concat(string(activity('get new AAD token').output.token_type), ' ',\nstring(activity('get new AAD token').output.access_token))",
+										"type": "Expression"
+									}
+								},
+								"body": {
+									"helloooooo": "worlddddd"
+								}
+							}
+						},
+						{
+							"name": "set refreshStatus",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "get dataset refresh status",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "refreshStatus",
+								"value": {
+									"value": "@activity('Get dataset refresh status').output.value[0].status",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "wait",
+							"description": "wait a random interval up to 15 minutes. We wait a random interval to help avoid the variable namespace being accidentally overwritten when running this process in parallel batches.",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": {
+									"value": "@rand(800, 900)",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "get new AAD token",
+							"type": "WebActivity",
+							"dependsOn": [
+								{
+									"activity": "wait",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.01:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"url": {
+									"value": "@concat('https://login.microsoftonline.com/',\nactivity('Get tenant id').output.value,\n'/oauth2/token')",
+									"type": "Expression"
+								},
+								"connectVia": {
+									"referenceName": "AutoResolveIntegrationRuntime",
+									"type": "IntegrationRuntimeReference"
+								},
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/x-www-form-urlencoded"
+								},
+								"body": {
+									"value": "@concat('grant_type=client_credentials&resource=https://analysis.windows.net/powerbi/api&client_id='\n,activity('Get service principal client id').output.value,\n'&client_secret='\n,encodeUriComponent(activity('Get service principal secret').output.value))",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"timeout": "0.03:00:00"
+				}
+			},
+			{
+				"name": "if refresh not complete",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "until refresh complete",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(variables('refreshStatus'),'Completed')",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "fail pipeline",
+							"type": "WebActivity",
+							"dependsOn": [
+								{
+									"activity": "Set refresh failure message",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.01:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"url": "https://ThrowAnError ",
+								"connectVia": {
+									"referenceName": "AutoResolveIntegrationRuntime",
+									"type": "IntegrationRuntimeReference"
+								},
+								"method": "POST",
+								"body": "Fail"
+							}
+						},
+						{
+							"name": "Set refresh failure message",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "refreshFailureMessage",
+								"value": {
+									"value": "@{activity('get dataset refresh status').output.value[0]}",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "success notification",
+				"description": "notify users ",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "log pipeline end",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plLogMsgAndSendEmail",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"metadataConnectionString": "sec-metadata-db-connection-string",
+						"emailEnabled": {
+							"value": "@pipeline().parameters.isEmailNotificationEnabled",
+							"type": "Expression"
+						},
+						"emailNotificationSendToAddress": {
+							"value": "@pipeline().parameters.emailNotificationSendToAddress",
+							"type": "Expression"
+						},
+						"emailImportance": "Low",
+						"emailSubject": {
+							"value": "SUCCESS: @{pipeline().Pipeline}",
+							"type": "Expression"
+						},
+						"emailMessage": {
+							"value": "The pipeline @{pipeline().Pipeline} finished successfully",
+							"type": "Expression"
+						},
+						"emailColor": "Green",
+						"executionLogSubject": {
+							"value": "Successful pipeline execution: @{pipeline().Pipeline}",
+							"type": "Expression"
+						},
+						"executionLogMessage": {
+							"value": "SUCCESS: Successfully completed refresh of the PowerBI dataset @{pipeline().parameters.datasetName}",
+							"type": "Expression"
+						},
+						"dataFactoryName": {
+							"value": "@pipeline().DataFactory",
+							"type": "Expression"
+						},
+						"pipelineName": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"pipelineRunID": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"pipelineTriggerID": {
+							"value": "@pipeline().TriggerId",
+							"type": "Expression"
+						},
+						"pipelineTriggerName": {
+							"value": "@pipeline().TriggerName",
+							"type": "Expression"
+						},
+						"pipelineTriggerTimestamp": {
+							"value": "@pipeline().TriggerTime",
+							"type": "Expression"
+						},
+						"pipelineTriggerType": {
+							"value": "@pipeline().TriggerType",
+							"type": "Expression"
+						},
+						"executionTimestamp": {
+							"value": "@{utcnow('yyyyMMddTHH:mm:ss')}",
+							"type": "Expression"
+						},
+						"isStart": "false",
+						"isEnd": "true",
+						"isError": "false",
+						"isInnerActivity": "false",
+						"isIncremental": "false",
+						"objectName": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						},
+						"objectSchema": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "error notification 3",
+				"description": "log error and notify users if notifications are enabled",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "if refresh not complete",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plLogMsgAndSendEmail",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"metadataConnectionString": "sec-metadata-db-connection-string",
+						"emailEnabled": {
+							"value": "@pipeline().parameters.isEmailNotificationEnabled",
+							"type": "Expression"
+						},
+						"emailNotificationSendToAddress": {
+							"value": "@pipeline().parameters.emailNotificationSendToAddress",
+							"type": "Expression"
+						},
+						"emailImportance": "High",
+						"emailSubject": {
+							"value": "FAILURE: @{pipeline().Pipeline} Dataset refresh failure for @{pipeline().parameters.datasetName}",
+							"type": "Expression"
+						},
+						"emailMessage": {
+							"value": "Power BI refresh failed due to error:\n@{variables('refreshFailureMessage')}",
+							"type": "Expression"
+						},
+						"emailColor": "Red",
+						"executionLogSubject": {
+							"value": "Error during pipeline: @{pipeline().Pipeline}",
+							"type": "Expression"
+						},
+						"executionLogMessage": {
+							"value": "FAILURE: There was an error on the Power BI dataset refresh for @{pipeline().parameters.datasetName}. Error Code: @{activity('if refresh not complete').error.errorCode} Error Message: @{activity('if refresh not complete').error.message} ",
+							"type": "Expression"
+						},
+						"dataFactoryName": {
+							"value": "@pipeline().DataFactory",
+							"type": "Expression"
+						},
+						"pipelineName": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"pipelineRunID": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"pipelineTriggerID": {
+							"value": "@pipeline().TriggerId",
+							"type": "Expression"
+						},
+						"pipelineTriggerName": {
+							"value": "@pipeline().TriggerName",
+							"type": "Expression"
+						},
+						"pipelineTriggerTimestamp": {
+							"value": "@pipeline().TriggerTime",
+							"type": "Expression"
+						},
+						"pipelineTriggerType": {
+							"value": "@pipeline().TriggerType",
+							"type": "Expression"
+						},
+						"executionTimestamp": {
+							"value": "@utcnow('yyyy-MM-dd HH:mm:ss')",
+							"type": "Expression"
+						},
+						"isStart": "false",
+						"isEnd": "false",
+						"isError": "true",
+						"isInnerActivity": "false",
+						"isIncremental": "false",
+						"objectName": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						},
+						"objectSchema": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "error notification 1",
+				"description": "log error and notify users if notifications are enabled",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "call dataset refresh",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plLogMsgAndSendEmail",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"metadataConnectionString": "sec-metadata-db-connection-string",
+						"emailEnabled": {
+							"value": "@pipeline().parameters.isEmailNotificationEnabled",
+							"type": "Expression"
+						},
+						"emailNotificationSendToAddress": {
+							"value": "@pipeline().parameters.emailNotificationSendToAddress",
+							"type": "Expression"
+						},
+						"emailImportance": "High",
+						"emailSubject": {
+							"value": "FAILURE: @{pipeline().Pipeline} Failed to Initialize Refresh",
+							"type": "Expression"
+						},
+						"emailMessage": {
+							"value": "Failed to initialize dataset refresh on dataset @{pipeline().parameters.datasetName}\n\n<b>Error Code: </b>@{activity('call dataset refresh').error.errorCode}",
+							"type": "Expression"
+						},
+						"emailColor": "Red",
+						"executionLogSubject": {
+							"value": "Error during pipeline: @{pipeline().Pipeline}",
+							"type": "Expression"
+						},
+						"executionLogMessage": {
+							"value": "FAILURE: There was an error while trying to refresh the dataset. Error Code: @{activity('call dataset refresh').error.errorCode} Error Message: @{activity('call dataset refresh').error.message}",
+							"type": "Expression"
+						},
+						"dataFactoryName": {
+							"value": "@pipeline().DataFactory",
+							"type": "Expression"
+						},
+						"pipelineName": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"pipelineRunID": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"pipelineTriggerID": {
+							"value": "@pipeline().TriggerId",
+							"type": "Expression"
+						},
+						"pipelineTriggerName": {
+							"value": "@pipeline().TriggerName",
+							"type": "Expression"
+						},
+						"pipelineTriggerTimestamp": {
+							"value": "@pipeline().TriggerTime",
+							"type": "Expression"
+						},
+						"pipelineTriggerType": {
+							"value": "@pipeline().TriggerType",
+							"type": "Expression"
+						},
+						"executionTimestamp": {
+							"value": "@utcnow('yyyy-MM-dd HH:mm:ss')",
+							"type": "Expression"
+						},
+						"isStart": "false",
+						"isEnd": "false",
+						"isError": "true",
+						"isInnerActivity": "false",
+						"isIncremental": "false",
+						"objectName": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						},
+						"objectSchema": "powerbi"
+					}
+				}
+			},
+			{
+				"name": "error notification 2",
+				"description": "log error and notify users if notifications are enabled",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "until refresh complete",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plLogMsgAndSendEmail",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"metadataConnectionString": "sec-metadata-db-connection-string",
+						"emailEnabled": {
+							"value": "@pipeline().parameters.isEmailNotificationEnabled",
+							"type": "Expression"
+						},
+						"emailNotificationSendToAddress": {
+							"value": "@pipeline().parameters.emailNotificationSendToAddress",
+							"type": "Expression"
+						},
+						"emailImportance": "High",
+						"emailSubject": {
+							"value": "FAILURE: @{pipeline().Pipeline} Dataset refresh failure for @{pipeline().parameters.datasetName}",
+							"type": "Expression"
+						},
+						"emailMessage": {
+							"value": "The Power BI dataset failed to refresh.\n\n<b>Error Code: </b>@{activity('until refresh complete').error.errorCode}\n<br>\n<b>Message: </b>@{activity('until refresh complete').error.message}\n",
+							"type": "Expression"
+						},
+						"emailColor": "Red",
+						"executionLogSubject": {
+							"value": "Error during pipeline: @{pipeline().Pipeline}",
+							"type": "Expression"
+						},
+						"executionLogMessage": {
+							"value": "FAILURE: There was an error during the dataset refresh. Error Code: @{activity('until refresh complete').error.errorCode} Error Message: @{activity('until refresh complete').error.message}",
+							"type": "Expression"
+						},
+						"dataFactoryName": {
+							"value": "@pipeline().DataFactory",
+							"type": "Expression"
+						},
+						"pipelineName": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"pipelineRunID": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"pipelineTriggerID": {
+							"value": "@pipeline().TriggerId",
+							"type": "Expression"
+						},
+						"pipelineTriggerName": {
+							"value": "@pipeline().TriggerName",
+							"type": "Expression"
+						},
+						"pipelineTriggerTimestamp": {
+							"value": "@pipeline().TriggerTime",
+							"type": "Expression"
+						},
+						"pipelineTriggerType": {
+							"value": "@pipeline().TriggerType",
+							"type": "Expression"
+						},
+						"executionTimestamp": {
+							"value": "@utcnow('yyyy-MM-dd HH:mm:ss')",
+							"type": "Expression"
+						},
+						"isStart": "false",
+						"isEnd": "false",
+						"isError": "true",
+						"isInnerActivity": "false",
+						"isIncremental": "false",
+						"objectName": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						},
+						"objectSchema": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "set utc timestamp",
+				"description": "set the UTC timestamp which will be later used as part of the downloaded filenames",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "log pipeline start",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "utcTimestamp",
+					"value": {
+						"value": "@{utcnow('yyyy-MM-dd hh:mm:ss')}",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "define environment for key vault uri",
+				"description": "use the datafactory name to define the environment and use the key vault uri",
+				"type": "Switch",
+				"dependsOn": [
+					{
+						"activity": "set utc timestamp",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "environment",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@variables('environment')",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "test",
+							"activities": [
+								{
+									"name": "Set test key vault uri",
+									"description": "",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"policy": {
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "keyVaultUri",
+										"value": "https://kv-sdat-test-sdt.vault.azure.net/"
+									}
+								}
+							]
+						},
+						{
+							"value": "prod",
+							"activities": [
+								{
+									"name": "Set prod key vault uri",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"policy": {
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "keyVaultUri",
+										"value": "https://kv-sdat-prod-sdt.vault.azure.net/"
+									}
+								}
+							]
+						}
+					],
+					"defaultActivities": [
+						{
+							"name": "Set dev key vault uri",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "keyVaultUri",
+								"value": "https://kv-sdat-dev-sdt.vault.azure.net/"
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "log pipeline start",
+				"description": "log pipeline start",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:05:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[adf].[uspLogExecutionMessage]",
+					"storedProcedureParameters": {
+						"dataSourceId": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"dataProcessId": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"executionLogSubject": {
+							"value": {
+								"value": "Start of pipeline: @{pipeline().Pipeline}",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"executionLogMessage": {
+							"value": "STARTING: Starting execution of the pipeline",
+							"type": "String"
+						},
+						"dataFactoryName": {
+							"value": {
+								"value": "@pipeline().DataFactory",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineName": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineRunID": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerID": {
+							"value": {
+								"value": "@pipeline().TriggerId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerName": {
+							"value": {
+								"value": "@pipeline().TriggerName",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerTimestamp": {
+							"value": {
+								"value": "@pipeline().TriggerTime",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"PipelineTriggerType": {
+							"value": {
+								"value": "@pipeline().TriggerType",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"executionTimestamp": {
+							"value": {
+								"value": "@utcnow('yyyy-MM-dd HH:mm:ss')",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"isStart": {
+							"value": "true",
+							"type": "Boolean"
+						},
+						"isEnd": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isError": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isInnerActivity": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isIncremental": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Boolean"
+						},
+						"objectName": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"objectSchema": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "lsAsqlManagedIdentity",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"connectionString": "sec-metadata-db-connection-string"
+					}
+				}
+			},
+			{
+				"name": "log pipeline end",
+				"description": "log pipeline end",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "if refresh not complete",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:05:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[adf].[uspLogExecutionMessage]",
+					"storedProcedureParameters": {
+						"dataSourceId": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"dataProcessId": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"executionLogSubject": {
+							"value": {
+								"value": "End of pipeline: @{pipeline().Pipeline}",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"executionLogMessage": {
+							"value": "SUCCESS: Successfully completed execution of the pipeline",
+							"type": "String"
+						},
+						"dataFactoryName": {
+							"value": {
+								"value": "@pipeline().DataFactory",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineName": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineRunID": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerID": {
+							"value": {
+								"value": "@pipeline().TriggerId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerName": {
+							"value": {
+								"value": "@pipeline().TriggerName",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerTimestamp": {
+							"value": {
+								"value": "@pipeline().TriggerTime",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"pipelineTriggerType": {
+							"value": {
+								"value": "@pipeline().TriggerType",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"executionTimestamp": {
+							"value": {
+								"value": "@utcnow('yyyy-MM-dd HH:mm:ss')",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"isStart": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isEnd": {
+							"value": "true",
+							"type": "Boolean"
+						},
+						"isError": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isInnerActivity": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isIncremental": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Boolean"
+						},
+						"objectName": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"objectSchema": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "lsAsqlManagedIdentity",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"connectionString": "sec-metadata-db-connection-string"
+					}
+				}
+			},
+			{
+				"name": "environment",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "log pipeline start",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "environment",
+					"value": {
+						"value": "@split(pipeline().DataFactory, '-')[2]",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"isEmailNotificationEnabled": {
+				"type": "string",
+				"defaultValue": "true"
+			},
+			"emailNotificationSendToAddress": {
+				"type": "string"
+			},
+			"svpClientIdSecretName": {
+				"type": "string",
+				"defaultValue": "powerBi--ClientId"
+			},
+			"svpSecretSecretName": {
+				"type": "string",
+				"defaultValue": "powerBi--ClientSecret"
+			},
+			"tenantIdSecretName": {
+				"type": "string",
+				"defaultValue": "powerbi--TenantId"
+			},
+			"datasetId": {
+				"type": "string",
+				"defaultValue": "c4b9613c-c526-49dd-98c5-3a49757551e6"
+			},
+			"workspaceId": {
+				"type": "string",
+				"defaultValue": "819f70e6-2610-4d0c-9626-81970e72fc1e"
+			},
+			"datasetName": {
+				"type": "string",
+				"defaultValue": "-"
+			}
+		},
+		"variables": {
+			"refreshStatus": {
+				"type": "String",
+				"defaultValue": "'Unknown'"
+			},
+			"utcTimestamp": {
+				"type": "String",
+				"defaultValue": "@{utcnow('yyyy-MM-dd hh:mm:ss')}"
+			},
+			"keyVaultUri": {
+				"type": "String"
+			},
+			"environment": {
+				"type": "String",
+				"defaultValue": "dev"
+			},
+			"refreshFailureMessage": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "400_goldToPbi/WebApp"
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-10-06T14:20:11Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

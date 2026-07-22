@@ -1,0 +1,25 @@
+{
+	"name": "lsHttpServerVRM",
+	"properties": {
+		"annotations": [],
+		"type": "HttpServer",
+		"typeProperties": {
+			"url": "https://data.vrm-mentor.com",
+			"enableServerCertificateValidation": false,
+			"authenticationType": "Basic",
+			"userName": "sundt_user",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "lsKeyVaultManagedIdentity",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "sec-vrm-password"
+			}
+		},
+		"connectVia": {
+			"referenceName": "AutoResolveIntegrationRuntime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

@@ -1,0 +1,582 @@
+{
+	"name": "plSourceToGoldP6",
+	"properties": {
+		"activities": [
+			{
+				"name": "copy p6 to bronze",
+				"description": "load data from cosential, emars,heavyjob,p6, e1",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "log pipeline start",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plSourceToBronzeSql",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"dataSourceName": "P6",
+						"batchGroup": {
+							"value": "@pipeline().parameters.batchGroup",
+							"type": "Expression"
+						},
+						"isEmailNotificationEnabled": {
+							"value": "@pipeline().parameters.isEmailNotificationEnabled",
+							"type": "Expression"
+						},
+						"emailNotificationSendToAddress": {
+							"value": "@pipeline().parameters.emailNotificationSendToAddress",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "log pipeline start",
+				"description": "log pipeline start",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:05:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[adf].[uspLogExecutionMessage]",
+					"storedProcedureParameters": {
+						"dataSourceId": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"dataProcessId": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"executionLogSubject": {
+							"value": {
+								"value": "Start of pipeline: @{pipeline().Pipeline}",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"executionLogMessage": {
+							"value": "STARTING: Starting execution of the pipeline",
+							"type": "String"
+						},
+						"dataFactoryName": {
+							"value": {
+								"value": "@pipeline().DataFactory",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineName": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineRunID": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerID": {
+							"value": {
+								"value": "@pipeline().TriggerId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerName": {
+							"value": {
+								"value": "@pipeline().TriggerName",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerTimestamp": {
+							"value": {
+								"value": "@pipeline().TriggerTime",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"PipelineTriggerType": {
+							"value": {
+								"value": "@pipeline().TriggerType",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"executionTimestamp": {
+							"value": {
+								"value": "@utcnow('yyyy-MM-dd HH:mm:ss')",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"isStart": {
+							"value": "true",
+							"type": "Boolean"
+						},
+						"isEnd": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isError": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isInnerActivity": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isIncremental": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Boolean"
+						},
+						"objectName": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"objectSchema": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "lsAsqlManagedIdentity",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"connectionString": "sec-metadata-db-connection-string"
+					}
+				}
+			},
+			{
+				"name": "log pipeline end",
+				"description": "log pipeline end",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Gold Parent",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:05:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[adf].[uspLogExecutionMessage]",
+					"storedProcedureParameters": {
+						"dataSourceId": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"dataProcessId": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"executionLogSubject": {
+							"value": {
+								"value": "End of pipeline: @{pipeline().Pipeline}",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"executionLogMessage": {
+							"value": "This is the end of the pipeline",
+							"type": "String"
+						},
+						"dataFactoryName": {
+							"value": {
+								"value": "@pipeline().DataFactory",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineName": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineRunID": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerID": {
+							"value": {
+								"value": "@pipeline().TriggerId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerName": {
+							"value": {
+								"value": "@pipeline().TriggerName",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerTimestamp": {
+							"value": {
+								"value": "@pipeline().TriggerTime",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"pipelineTriggerType": {
+							"value": {
+								"value": "@pipeline().TriggerType",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"executionTimestamp": {
+							"value": {
+								"value": "@utcnow('yyyy-MM-dd HH:mm:ss')",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"isStart": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isEnd": {
+							"value": "true",
+							"type": "Boolean"
+						},
+						"isError": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isInnerActivity": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isIncremental": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Boolean"
+						},
+						"objectName": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"objectSchema": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "lsAsqlManagedIdentity",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"connectionString": "sec-metadata-db-connection-string"
+					}
+				}
+			},
+			{
+				"name": "log pipeline failure",
+				"description": "log pipeline end",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Gold Parent",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:05:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[adf].[uspLogExecutionMessage]",
+					"storedProcedureParameters": {
+						"dataSourceId": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"dataProcessId": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"executionLogSubject": {
+							"value": {
+								"value": "FAILURE: Error during pipeline: @{pipeline().Pipeline}",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"executionLogMessage": {
+							"value": {
+								"value": "There was an error during one of the executed pipelines of the orchestrator pipeline @{pipeline().Pipeline}",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"dataFactoryName": {
+							"value": {
+								"value": "@pipeline().DataFactory",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineName": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineRunID": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerID": {
+							"value": {
+								"value": "@pipeline().TriggerId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerName": {
+							"value": {
+								"value": "@pipeline().TriggerName",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerTimestamp": {
+							"value": {
+								"value": "@pipeline().TriggerTime",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"pipelineTriggerType": {
+							"value": {
+								"value": "@pipeline().TriggerType",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"executionTimestamp": {
+							"value": {
+								"value": "@utcnow('yyyy-MM-dd HH:mm:ss')",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"isStart": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isEnd": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isError": {
+							"value": "true",
+							"type": "Boolean"
+						},
+						"isInnerActivity": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isIncremental": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Boolean"
+						},
+						"objectName": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"objectSchema": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "lsAsqlManagedIdentity",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"connectionString": "sec-metadata-db-connection-string"
+					}
+				}
+			},
+			{
+				"name": "Gold Parent",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "silver",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plSilverToGoldParent",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"batchGroup": {
+							"value": "@pipeline().parameters.batchGroup",
+							"type": "Expression"
+						},
+						"subjectArea": "schedule",
+						"isEmailNotificationEnabled": {
+							"value": "@pipeline().parameters.isEmailNotificationEnabled",
+							"type": "Expression"
+						},
+						"emailNotificationSendToAddress": {
+							"value": "@pipeline().parameters.emailNotificationSendToAddress",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "silver",
+				"description": "load data from cosential, emars,heavyjob,p6, e1",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "copy p6 to bronze",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plBronzeToSilver",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"batchGroup": {
+							"value": "@pipeline().parameters.batchGroup",
+							"type": "Expression"
+						},
+						"objectSchema": "silver_p6",
+						"isEmailNotificationEnabled": {
+							"value": "@pipeline().parameters.isEmailNotificationEnabled",
+							"type": "Expression"
+						},
+						"emailNotificationSendToAddress": {
+							"value": "@pipeline().parameters.emailNotificationSendToAddress",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"isEmailNotificationEnabled": {
+				"type": "string",
+				"defaultValue": "true"
+			},
+			"emailNotificationSendToAddress": {
+				"type": "string"
+			},
+			"batchGroup": {
+				"type": "string",
+				"defaultValue": "-"
+			}
+		},
+		"folder": {
+			"name": "003_orchestratorPipelines"
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-10-25T21:30:11Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

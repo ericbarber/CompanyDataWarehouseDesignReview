@@ -1,0 +1,12 @@
+{
+	"name": "lsKeyVaultManagedIdentity",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "Key Vault linked service connection",
+		"annotations": [],
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://kv-dw2023-dev-sdt.vault.azure.net/"
+		}
+	}
+}

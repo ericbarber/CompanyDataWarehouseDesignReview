@@ -1,0 +1,16 @@
+{
+	"name": "dsFileSystemWeldOffice",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "IsFileSystemWeldOffice",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "FileServerLocation"
+			}
+		}
+	}
+}

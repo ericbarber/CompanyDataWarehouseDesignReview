@@ -1,0 +1,12 @@
+{
+	"name": "dsSqlIneightEstimate",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lsSqlIneightEstimate",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": []
+	}
+}

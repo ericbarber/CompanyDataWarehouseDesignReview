@@ -1,0 +1,1217 @@
+{
+	"name": "plSourceToSilverRestApi",
+	"properties": {
+		"activities": [
+			{
+				"name": "bronze pbi",
+				"description": "load data from pbi",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "log pipeline start",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plSourceToBronzeRestApiPbi",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"batchGroup": {
+							"value": "@pipeline().parameters.batchGroup",
+							"type": "Expression"
+						},
+						"isEmailNotificationEnabled": {
+							"value": "@pipeline().parameters.isEmailNotificationEnabled",
+							"type": "Expression"
+						},
+						"emailNotificationSendToAddress": {
+							"value": "@pipeline().parameters.emailNotificationSendToAddress",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "bronze aad",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "log pipeline start",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plSourceToBronzeRestApiAAD",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"batchGroup": {
+							"value": "@pipeline().parameters.batchGroup",
+							"type": "Expression"
+						},
+						"isEmailNotificationEnabled": {
+							"value": "@pipeline().parameters.isEmailNotificationEnabled",
+							"type": "Expression"
+						},
+						"emailNotificationSendToAddress": {
+							"value": "@pipeline().parameters.emailNotificationSendToAddress",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "silver aad",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "bronze aad",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plBronzeToSilver",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"batchGroup": {
+							"value": "@pipeline().parameters.batchGroup",
+							"type": "Expression"
+						},
+						"objectSchema": "silver_azureactivedirectory",
+						"isEmailNotificationEnabled": {
+							"value": "@pipeline().parameters.isEmailNotificationEnabled",
+							"type": "Expression"
+						},
+						"emailNotificationSendToAddress": {
+							"value": "@pipeline().parameters.emailNotificationSendToAddress",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "log pipeline start",
+				"description": "log pipeline start",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:05:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[adf].[uspLogExecutionMessage]",
+					"storedProcedureParameters": {
+						"dataSourceId": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"dataProcessId": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"executionLogSubject": {
+							"value": {
+								"value": "Start of pipeline: @{pipeline().Pipeline}",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"executionLogMessage": {
+							"value": "STARTING: Starting execution of the pipeline",
+							"type": "String"
+						},
+						"dataFactoryName": {
+							"value": {
+								"value": "@pipeline().DataFactory",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineName": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineRunID": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerID": {
+							"value": {
+								"value": "@pipeline().TriggerId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerName": {
+							"value": {
+								"value": "@pipeline().TriggerName",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerTimestamp": {
+							"value": {
+								"value": "@pipeline().TriggerTime",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"PipelineTriggerType": {
+							"value": {
+								"value": "@pipeline().TriggerType",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"executionTimestamp": {
+							"value": {
+								"value": "@utcnow('yyyy-MM-dd HH:mm:ss')",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"isStart": {
+							"value": "true",
+							"type": "Boolean"
+						},
+						"isEnd": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isError": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isInnerActivity": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isIncremental": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Boolean"
+						},
+						"objectName": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"objectSchema": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "lsAsqlManagedIdentity",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"connectionString": "sec-metadata-db-connection-string"
+					}
+				}
+			},
+			{
+				"name": "log pipeline end",
+				"description": "log pipeline end",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "silver aad",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "silver pbi",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "silver cosential api",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "silver team binder",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "silver schedule validator",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "silver tradetapp",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "silver nccer",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "silver vairkko",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "silver visionlink",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:05:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[adf].[uspLogExecutionMessage]",
+					"storedProcedureParameters": {
+						"dataSourceId": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"dataProcessId": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"executionLogSubject": {
+							"value": {
+								"value": "End of pipeline: @{pipeline().Pipeline}",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"executionLogMessage": {
+							"value": "This is the end of the pipeline",
+							"type": "String"
+						},
+						"dataFactoryName": {
+							"value": {
+								"value": "@pipeline().DataFactory",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineName": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineRunID": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerID": {
+							"value": {
+								"value": "@pipeline().TriggerId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerName": {
+							"value": {
+								"value": "@pipeline().TriggerName",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerTimestamp": {
+							"value": {
+								"value": "@pipeline().TriggerTime",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"pipelineTriggerType": {
+							"value": {
+								"value": "@pipeline().TriggerType",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"executionTimestamp": {
+							"value": {
+								"value": "@utcnow('yyyy-MM-dd HH:mm:ss')",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"isStart": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isEnd": {
+							"value": "true",
+							"type": "Boolean"
+						},
+						"isError": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isInnerActivity": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isIncremental": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Boolean"
+						},
+						"objectName": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"objectSchema": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "lsAsqlManagedIdentity",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"connectionString": "sec-metadata-db-connection-string"
+					}
+				}
+			},
+			{
+				"name": "log pipeline failure",
+				"description": "log pipeline end",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "silver aad",
+						"dependencyConditions": [
+							"Failed"
+						]
+					},
+					{
+						"activity": "silver pbi",
+						"dependencyConditions": [
+							"Failed"
+						]
+					},
+					{
+						"activity": "silver cosential api",
+						"dependencyConditions": [
+							"Failed"
+						]
+					},
+					{
+						"activity": "silver team binder",
+						"dependencyConditions": [
+							"Failed"
+						]
+					},
+					{
+						"activity": "silver schedule validator",
+						"dependencyConditions": [
+							"Failed"
+						]
+					},
+					{
+						"activity": "silver tradetapp",
+						"dependencyConditions": [
+							"Failed"
+						]
+					},
+					{
+						"activity": "silver nccer",
+						"dependencyConditions": [
+							"Failed"
+						]
+					},
+					{
+						"activity": "silver vairkko",
+						"dependencyConditions": [
+							"Failed"
+						]
+					},
+					{
+						"activity": "silver visionlink",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:05:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[adf].[uspLogExecutionMessage]",
+					"storedProcedureParameters": {
+						"dataSourceId": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"dataProcessId": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"executionLogSubject": {
+							"value": {
+								"value": "FAILURE: Error during pipeline: @{pipeline().Pipeline}",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"executionLogMessage": {
+							"value": {
+								"value": "There was an error during one of the executed pipelines of the orchestrator pipeline @{pipeline().Pipeline}",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"dataFactoryName": {
+							"value": {
+								"value": "@pipeline().DataFactory",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineName": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineRunID": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerID": {
+							"value": {
+								"value": "@pipeline().TriggerId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerName": {
+							"value": {
+								"value": "@pipeline().TriggerName",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerTimestamp": {
+							"value": {
+								"value": "@pipeline().TriggerTime",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"pipelineTriggerType": {
+							"value": {
+								"value": "@pipeline().TriggerType",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"executionTimestamp": {
+							"value": {
+								"value": "@utcnow('yyyy-MM-dd HH:mm:ss')",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"isStart": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isEnd": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isError": {
+							"value": "true",
+							"type": "Boolean"
+						},
+						"isInnerActivity": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isIncremental": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Boolean"
+						},
+						"objectName": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"objectSchema": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "lsAsqlManagedIdentity",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"connectionString": "sec-metadata-db-connection-string"
+					}
+				}
+			},
+			{
+				"name": "silver pbi",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "bronze pbi",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plBronzeToSilver",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"batchGroup": {
+							"value": "@pipeline().parameters.batchGroup",
+							"type": "Expression"
+						},
+						"objectSchema": "silver_powerbi",
+						"isEmailNotificationEnabled": {
+							"value": "@pipeline().parameters.isEmailNotificationEnabled",
+							"type": "Expression"
+						},
+						"emailNotificationSendToAddress": {
+							"value": "@pipeline().parameters.emailNotificationSendToAddress",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "bronze cosential api",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "log pipeline start",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plSourceToBronzeRestApiCosetial",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"batchGroup": {
+							"value": "@pipeline().parameters.batchGroup",
+							"type": "Expression"
+						},
+						"isEmailNotificationEnabled": {
+							"value": "@pipeline().parameters.isEmailNotificationEnabled",
+							"type": "Expression"
+						},
+						"emailNotificationSendToAddress": {
+							"value": "@pipeline().parameters.emailNotificationSendToAddress",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "silver cosential api",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "bronze cosential api",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plBronzeToSilver",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"batchGroup": {
+							"value": "@pipeline().parameters.batchGroup",
+							"type": "Expression"
+						},
+						"objectSchema": "silver_cosential_api",
+						"isEmailNotificationEnabled": {
+							"value": "@pipeline().parameters.isEmailNotificationEnabled",
+							"type": "Expression"
+						},
+						"emailNotificationSendToAddress": {
+							"value": "@pipeline().parameters.emailNotificationSendToAddress",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "bronze team binder",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "log pipeline start",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plSourceToBronzeRestApiTeamBinder",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"batchGroup": {
+							"value": "@pipeline().parameters.batchGroup",
+							"type": "Expression"
+						},
+						"isEmailNotificationEnabled": {
+							"value": "@pipeline().parameters.isEmailNotificationEnabled",
+							"type": "Expression"
+						},
+						"emailNotificationSendToAddress": {
+							"value": "@pipeline().parameters.emailNotificationSendToAddress",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "silver team binder",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "bronze team binder",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plBronzeToSilver",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"batchGroup": {
+							"value": "@pipeline().parameters.batchGroup",
+							"type": "Expression"
+						},
+						"objectSchema": "silver_team_binder",
+						"isEmailNotificationEnabled": {
+							"value": "@pipeline().parameters.isEmailNotificationEnabled",
+							"type": "Expression"
+						},
+						"emailNotificationSendToAddress": {
+							"value": "@pipeline().parameters.emailNotificationSendToAddress",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "bronze schedule validator",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "log pipeline start",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plSourceToBronzeRestApiScheduleValidator",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"batchGroup": {
+							"value": "@pipeline().parameters.batchGroup",
+							"type": "Expression"
+						},
+						"isEmailNotificationEnabled": {
+							"value": "@pipeline().parameters.isEmailNotificationEnabled",
+							"type": "Expression"
+						},
+						"emailNotificationSendToAddress": {
+							"value": "@pipeline().parameters.emailNotificationSendToAddress",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "silver schedule validator",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "bronze schedule validator",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plBronzeToSilver",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"batchGroup": {
+							"value": "@pipeline().parameters.batchGroup",
+							"type": "Expression"
+						},
+						"objectSchema": "silver_schedule_validator",
+						"isEmailNotificationEnabled": {
+							"value": "@pipeline().parameters.isEmailNotificationEnabled",
+							"type": "Expression"
+						},
+						"emailNotificationSendToAddress": {
+							"value": "@pipeline().parameters.emailNotificationSendToAddress",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "bronzeTradetapp",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "log pipeline start",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plSourceToBronzeRestApiTradetapp",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"batchGroup": {
+							"value": "@pipeline().parameters.batchGroup",
+							"type": "Expression"
+						},
+						"isEmailNotificationEnabled": "@pipeline().parameters.isEmailNotificationEnabled",
+						"emailNotificationSendToAddress": "@pipeline().parameters.emailNotificationSendToAddress"
+					}
+				}
+			},
+			{
+				"name": "silver tradetapp",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "bronzeTradetapp",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plBronzeToSilver",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"batchGroup": {
+							"value": "@pipeline().parameters.batchGroup",
+							"type": "Expression"
+						},
+						"objectSchema": "silver_tradetapp",
+						"isEmailNotificationEnabled": {
+							"value": "@pipeline().parameters.isEmailNotificationEnabled",
+							"type": "Expression"
+						},
+						"emailNotificationSendToAddress": {
+							"value": "@pipeline().parameters.emailNotificationSendToAddress",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "bronze nccer",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "log pipeline start",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plSourceToBronzeRestApiNccer",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"isEmailNotificationEnabled": "@pipeline().parameters.isEmailNotificationEnabled",
+						"emailNotificationSendToAddress": "@pipeline().parameters.emailNotificationSendToAddress"
+					}
+				}
+			},
+			{
+				"name": "silver nccer",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "bronze nccer",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plBronzeToSilver",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"objectSchema": "silver_nccer",
+						"isEmailNotificationEnabled": {
+							"value": "@pipeline().parameters.isEmailNotificationEnabled",
+							"type": "Expression"
+						},
+						"emailNotificationSendToAddress": {
+							"value": "@pipeline().parameters.emailNotificationSendToAddress",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "bronze vairkko",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "log pipeline start",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plSourceToBronzeRestApiVairkko",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"batchGroup": {
+							"value": "@pipeline().parameters.batchGroup",
+							"type": "Expression"
+						},
+						"isEmailNotificationEnabled": {
+							"value": "@pipeline().parameters.isEmailNotificationEnabled",
+							"type": "Expression"
+						},
+						"emailNotificationSendToAddress": {
+							"value": "@pipeline().parameters.emailNotificationSendToAddress",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "silver vairkko",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "bronze vairkko",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plBronzeToSilver",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"batchGroup": {
+							"value": "@pipeline().parameters.batchGroup",
+							"type": "Expression"
+						},
+						"objectSchema": "silver_vairkko",
+						"isEmailNotificationEnabled": {
+							"value": "@pipeline().parameters.isEmailNotificationEnabled",
+							"type": "Expression"
+						},
+						"emailNotificationSendToAddress": {
+							"value": "@pipeline().parameters.emailNotificationSendToAddress",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "bronzevisionlink",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "log pipeline start",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plSourceToBronzeRestApiVisionLink",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"isEmailNotificationEnabled": "@pipeline().parameters.isEmailNotificationEnabled",
+						"emailNotificationSendToAddress": "@pipeline().parameters.emailNotificationSendToAddress"
+					}
+				}
+			},
+			{
+				"name": "silver visionlink",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "bronzevisionlink",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plBronzeToSilver",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"batchGroup": {
+							"value": "@pipeline().parameters.batchGroup",
+							"type": "Expression"
+						},
+						"objectSchema": "silver_visionlink",
+						"isEmailNotificationEnabled": {
+							"value": "@pipeline().parameters.isEmailNotificationEnabled",
+							"type": "Expression"
+						},
+						"emailNotificationSendToAddress": {
+							"value": "@pipeline().parameters.emailNotificationSendToAddress",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"isEmailNotificationEnabled": {
+				"type": "string",
+				"defaultValue": "true"
+			},
+			"emailNotificationSendToAddress": {
+				"type": "string"
+			},
+			"batchGroup": {
+				"type": "string",
+				"defaultValue": "daily"
+			}
+		},
+		"folder": {
+			"name": "003_orchestratorPipelines/SourceToSilver"
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-07-20T18:43:04Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

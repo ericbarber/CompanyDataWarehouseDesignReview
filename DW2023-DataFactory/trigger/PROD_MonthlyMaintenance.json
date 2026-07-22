@@ -1,0 +1,42 @@
+{
+	"name": "PROD_MonthlyMaintenance",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "plMonthlyMaintenance",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"isEmailNotificationEnabled": true,
+					"emailNotificationSendToAddress": "Azure-DataWarehouse-Alerts@sundt.com"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Month",
+				"interval": 1,
+				"startTime": "2023-09-23T02:49:00",
+				"timeZone": "Pacific Standard Time",
+				"schedule": {
+					"minutes": [
+						0
+					],
+					"hours": [
+						8
+					],
+					"monthlyOccurrences": [
+						{
+							"day": "Saturday",
+							"occurrence": -1
+						}
+					]
+				}
+			}
+		}
+	}
+}

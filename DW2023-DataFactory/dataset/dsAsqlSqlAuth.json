@@ -1,0 +1,64 @@
+{
+	"name": "dsAsqlSqlAuth",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lsAsqlSqlAuth",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"serverName": {
+					"value": "@dataset().serverName",
+					"type": "Expression"
+				},
+				"databaseName": {
+					"value": "@dataset().databaseName",
+					"type": "Expression"
+				},
+				"passwordSecret": {
+					"value": "@dataset().passwordSecret",
+					"type": "Expression"
+				},
+				"userName": {
+					"value": "@dataset().userName",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"serverName": {
+				"type": "string",
+				"defaultValue": "sdt-sql-customapps-prod-01.database.windows.net"
+			},
+			"databaseName": {
+				"type": "string",
+				"defaultValue": "MprApp"
+			},
+			"userName": {
+				"type": "string",
+				"defaultValue": "SQLUser_MprApp_dbreader"
+			},
+			"passwordSecret": {
+				"type": "string",
+				"defaultValue": "sec-mpr-reader-password"
+			},
+			"schemaName": {
+				"type": "string"
+			},
+			"tableName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().schemaName",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().tableName",
+				"type": "Expression"
+			}
+		}
+	}
+}

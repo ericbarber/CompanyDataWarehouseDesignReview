@@ -1,0 +1,40 @@
+{
+	"name": "lsFileSystemUserName",
+	"properties": {
+		"parameters": {
+			"host": {
+				"type": "string",
+				"defaultValue": "\\\\temrdshj01\\SCRDR_Export"
+			},
+			"userName": {
+				"type": "string",
+				"defaultValue": "sundt\\da-dev-scrdr"
+			},
+			"connectionSecretName": {
+				"type": "string",
+				"defaultValue": "sec-heavyjob-scrdr-export-user"
+			}
+		},
+		"annotations": [],
+		"type": "FileServer",
+		"typeProperties": {
+			"host": "@{linkedService().host}",
+			"userId": "@{linkedService().userName}",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "lsKeyVaultManagedIdentity",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": {
+					"value": "@linkedService().connectionSecretName",
+					"type": "Expression"
+				}
+			}
+		},
+		"connectVia": {
+			"referenceName": "selfHostedIntegrationRuntimeVm01",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

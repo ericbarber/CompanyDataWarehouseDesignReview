@@ -1,0 +1,11 @@
+{
+	"name": "lsKeyVaultManagedIdentityShared",
+	"properties": {
+		"description": "shared sdat key vault",
+		"annotations": [],
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://kv-shared-dev-sdt.vault.azure.net/"
+		}
+	}
+}

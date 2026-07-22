@@ -1,0 +1,44 @@
+{
+	"name": "IsSecureFileSystemUserName",
+	"properties": {
+		"description": "Linked Service for secure file transfer protocol.",
+		"parameters": {
+			"host": {
+				"type": "string",
+				"defaultValue": "secureftp.sundt.com"
+			},
+			"userName": {
+				"type": "string",
+				"defaultValue": "clueintegrations"
+			},
+			"connectionSecretName": {
+				"type": "string",
+				"defaultValue": "sec-clue-sftp-export"
+			}
+		},
+		"annotations": [],
+		"type": "Sftp",
+		"typeProperties": {
+			"host": "@{linkedService().host}",
+			"port": 22,
+			"skipHostKeyValidation": true,
+			"authenticationType": "Basic",
+			"userName": "@{linkedService().userName}",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "lsKeyVaultManagedIdentity",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": {
+					"value": "@linkedService().connectionSecretName",
+					"type": "Expression"
+				}
+			}
+		},
+		"connectVia": {
+			"referenceName": "selfHostedIntegrationRuntimeVm01",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

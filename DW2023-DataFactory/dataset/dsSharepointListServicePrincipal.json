@@ -1,0 +1,36 @@
+{
+	"name": "dsSharepointListServicePrincipal",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lsSharepointListServicePrincipal",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"connectionSecretName": "sec-sharepoint-datawarehouse-files-svp-secret",
+				"siteUrl": "https://sundtconstruction.sharepoint.com/sites/DatawarehouseFiles/"
+			}
+		},
+		"parameters": {
+			"siteUrl": {
+				"type": "string",
+				"defaultValue": "https://sundtconstruction.sharepoint.com/sites/DatawarehouseFiles/"
+			},
+			"listName": {
+				"type": "string",
+				"defaultValue": "ENRBuildingCostIndex"
+			},
+			"connectionSecretName": {
+				"type": "string",
+				"defaultValue": "sec-sharepoint-datawarehouse-files-svp-secret"
+			}
+		},
+		"annotations": [],
+		"type": "SharePointOnlineListResource",
+		"schema": [],
+		"typeProperties": {
+			"listName": {
+				"value": "@dataset().listName",
+				"type": "Expression"
+			}
+		}
+	}
+}

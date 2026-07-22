@@ -1,0 +1,43 @@
+{
+	"name": "dsAsqlManagedIdentity",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lsAsqlManagedIdentity",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"connectionString": {
+					"value": "@dataset().connectionString",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"connectionString": {
+				"type": "String",
+				"defaultValue": "sec-metadata-db-connection-string"
+			},
+			"schema": {
+				"type": "String",
+				"defaultValue": "-"
+			},
+			"tableName": {
+				"type": "String",
+				"defaultValue": "-"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().schema",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().tableName",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

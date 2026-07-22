@@ -1,0 +1,3965 @@
+{
+  "field_usages": [
+    {
+      "field": "objectName",
+      "pipeline_count": 60,
+      "pipelines": [
+        "plCopyClue",
+        "plSourceToBronzeAsql",
+        "plSourceToBronzeAsqlInEight",
+        "plSourceToBronzeAsqlInEight_serverless",
+        "plSourceToBronzeAsqlQdr",
+        "plSourceToBronzeAsqlQdr_serverless",
+        "plSourceToBronzeAsqlSdatWebApp",
+        "plSourceToBronzeAsqlSdatWebApp_serverless",
+        "plSourceToBronzeAsql_serverless",
+        "plSourceToBronzeAsqlgng",
+        "plSourceToBronzeAsqltimesheetApp",
+        "plSourceToBronzeCslbLisence",
+        "plSourceToBronzeCslbLisence_serverless",
+        "plSourceToBronzeDropZoneCsv",
+        "plSourceToBronzeDropZoneXls",
+        "plSourceToBronzeFileSystemHeavyJob",
+        "plSourceToBronzeFileSystemHeavyJob_serverless",
+        "plSourceToBronzeFileSystemWeldOffice",
+        "plSourceToBronzeGraphQlApiAzureCostManagement",
+        "plSourceToBronzeGraphQlApiSiteSense"
+      ],
+      "sample_expressions": [
+        "@item().objectName",
+        "@{replace(item().objectName,'_','')}_@{formatDateTime(variables('localTimestamp'), 'yyyy')}@{formatDateTime(variables('localTimestamp'), 'MM')}@{formatDateTi...",
+        "The clue file for @{item().objectName} had zero rows, therefore the file probably did not exist."
+      ],
+      "use_count": 803
+    },
+    {
+      "field": "objectSchema",
+      "pipeline_count": 60,
+      "pipelines": [
+        "plCopyClue",
+        "plSourceToBronzeAsql",
+        "plSourceToBronzeAsqlInEight",
+        "plSourceToBronzeAsqlInEight_serverless",
+        "plSourceToBronzeAsqlQdr",
+        "plSourceToBronzeAsqlQdr_serverless",
+        "plSourceToBronzeAsqlSdatWebApp",
+        "plSourceToBronzeAsqlSdatWebApp_serverless",
+        "plSourceToBronzeAsql_serverless",
+        "plSourceToBronzeAsqlgng",
+        "plSourceToBronzeAsqltimesheetApp",
+        "plSourceToBronzeCslbLisence",
+        "plSourceToBronzeCslbLisence_serverless",
+        "plSourceToBronzeDropZoneCsv",
+        "plSourceToBronzeDropZoneXls",
+        "plSourceToBronzeFileSystemHeavyJob",
+        "plSourceToBronzeFileSystemHeavyJob_serverless",
+        "plSourceToBronzeFileSystemWeldOffice",
+        "plSourceToBronzeGraphQlApiAzureCostManagement",
+        "plSourceToBronzeGraphQlApiSiteSense"
+      ],
+      "sample_expressions": [
+        "@item().objectSchema",
+        "@coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName))",
+        "SELECT * FROM @{item().objectSchema}.@{item().objectName} WHERE @{item().watermarkColumn} >= '@{item().watermarkValue}'"
+      ],
+      "use_count": 510
+    },
+    {
+      "field": "dataSourceId",
+      "pipeline_count": 60,
+      "pipelines": [
+        "plCopyClue",
+        "plSourceToBronzeAsql",
+        "plSourceToBronzeAsqlInEight",
+        "plSourceToBronzeAsqlInEight_serverless",
+        "plSourceToBronzeAsqlQdr",
+        "plSourceToBronzeAsqlQdr_serverless",
+        "plSourceToBronzeAsqlSdatWebApp",
+        "plSourceToBronzeAsqlSdatWebApp_serverless",
+        "plSourceToBronzeAsql_serverless",
+        "plSourceToBronzeAsqlgng",
+        "plSourceToBronzeAsqltimesheetApp",
+        "plSourceToBronzeCslbLisence",
+        "plSourceToBronzeCslbLisence_serverless",
+        "plSourceToBronzeDropZoneCsv",
+        "plSourceToBronzeDropZoneXls",
+        "plSourceToBronzeFileSystemHeavyJob",
+        "plSourceToBronzeFileSystemHeavyJob_serverless",
+        "plSourceToBronzeFileSystemWeldOffice",
+        "plSourceToBronzeGraphQlApiAzureCostManagement",
+        "plSourceToBronzeGraphQlApiSiteSense"
+      ],
+      "sample_expressions": [
+        "@item().dataSourceId"
+      ],
+      "use_count": 337
+    },
+    {
+      "field": "dataSourceName",
+      "pipeline_count": 59,
+      "pipelines": [
+        "plSourceToBronzeAsql",
+        "plSourceToBronzeAsqlInEight",
+        "plSourceToBronzeAsqlInEight_serverless",
+        "plSourceToBronzeAsqlQdr",
+        "plSourceToBronzeAsqlQdr_serverless",
+        "plSourceToBronzeAsqlSdatWebApp",
+        "plSourceToBronzeAsqlSdatWebApp_serverless",
+        "plSourceToBronzeAsql_serverless",
+        "plSourceToBronzeAsqlgng",
+        "plSourceToBronzeAsqltimesheetApp",
+        "plSourceToBronzeCslbLisence",
+        "plSourceToBronzeCslbLisence_serverless",
+        "plSourceToBronzeDropZoneCsv",
+        "plSourceToBronzeDropZoneXls",
+        "plSourceToBronzeFileSystemHeavyJob",
+        "plSourceToBronzeFileSystemHeavyJob_serverless",
+        "plSourceToBronzeFileSystemWeldOffice",
+        "plSourceToBronzeGraphQlApiAzureCostManagement",
+        "plSourceToBronzeGraphQlApiSiteSense",
+        "plSourceToBronzeRestApiAAD"
+      ],
+      "sample_expressions": [
+        "/@{item().dataSourceName}/@{item().objectName}/@{formatDateTime(variables('localTimestamp'), 'yyyy')}/@{formatDateTime(variables('localTimestamp'), 'MM')}/@{...",
+        "@item().dataSourceName",
+        "@{item().dataSourceName}/@{item().objectName}/@{formatDateTime(variables('localTimestamp'), 'yyyy')}/@{formatDateTime(variables('localTimestamp'), 'MM')}/@{f..."
+      ],
+      "use_count": 299
+    },
+    {
+      "field": "isIncremental",
+      "pipeline_count": 56,
+      "pipelines": [
+        "plBronzeToSilver",
+        "plBronzeToSilverFullLoad",
+        "plBronzeToSilver_serverless",
+        "plSilverToGoldChild",
+        "plSilverToGoldChild_serverless",
+        "plSourceToBronzeAsql",
+        "plSourceToBronzeAsqlInEight",
+        "plSourceToBronzeAsqlInEight_serverless",
+        "plSourceToBronzeAsqlQdr",
+        "plSourceToBronzeAsqlQdr_serverless",
+        "plSourceToBronzeAsqlSdatWebApp",
+        "plSourceToBronzeAsqlSdatWebApp_serverless",
+        "plSourceToBronzeAsql_serverless",
+        "plSourceToBronzeAsqlgng",
+        "plSourceToBronzeAsqltimesheetApp",
+        "plSourceToBronzeCslbLisence",
+        "plSourceToBronzeCslbLisence_serverless",
+        "plSourceToBronzeFileSystemHeavyJob",
+        "plSourceToBronzeFileSystemHeavyJob_serverless",
+        "plSourceToBronzeFileSystemWeldOffice"
+      ],
+      "sample_expressions": [
+        "@string(item().isIncremental)",
+        "@item().isIncremental",
+        "<b>Row count validation failed</b> <b>Data Source Name:</b> @{item().dataSourceName} <b>Object Schema:</b> @{item().objectSchema} <b>Object Name:</b> @{item(..."
+      ],
+      "use_count": 204
+    },
+    {
+      "field": "IsIncremental",
+      "pipeline_count": 57,
+      "pipelines": [
+        "plSourceToBronzeAsql",
+        "plSourceToBronzeAsqlInEight",
+        "plSourceToBronzeAsqlInEight_serverless",
+        "plSourceToBronzeAsqlQdr",
+        "plSourceToBronzeAsqlQdr_serverless",
+        "plSourceToBronzeAsqlSdatWebApp",
+        "plSourceToBronzeAsqlSdatWebApp_serverless",
+        "plSourceToBronzeAsql_serverless",
+        "plSourceToBronzeAsqlgng",
+        "plSourceToBronzeAsqltimesheetApp",
+        "plSourceToBronzeCslbLisence",
+        "plSourceToBronzeCslbLisence_serverless",
+        "plSourceToBronzeFileSystemHeavyJob",
+        "plSourceToBronzeFileSystemHeavyJob_serverless",
+        "plSourceToBronzeFileSystemWeldOffice",
+        "plSourceToBronzeGraphQlApiAzureCostManagement",
+        "plSourceToBronzeGraphQlApiSiteSense",
+        "plSourceToBronzeRestApiAAD",
+        "plSourceToBronzeRestApiAAD_serverless",
+        "plSourceToBronzeRestApiCosetial"
+      ],
+      "sample_expressions": [
+        "@string(item().IsIncremental)",
+        "@bool(item().IsIncremental)"
+      ],
+      "use_count": 109
+    },
+    {
+      "field": "primaryKeyColumns",
+      "pipeline_count": 62,
+      "pipelines": [
+        "plBronzeToSilver",
+        "plBronzeToSilverFullLoad",
+        "plBronzeToSilver_serverless",
+        "plSourceToBronzeAsql",
+        "plSourceToBronzeAsqlInEight",
+        "plSourceToBronzeAsqlInEight_serverless",
+        "plSourceToBronzeAsqlQdr",
+        "plSourceToBronzeAsqlQdr_serverless",
+        "plSourceToBronzeAsqlSdatWebApp",
+        "plSourceToBronzeAsqlSdatWebApp_serverless",
+        "plSourceToBronzeAsql_serverless",
+        "plSourceToBronzeAsqlgng",
+        "plSourceToBronzeAsqltimesheetApp",
+        "plSourceToBronzeCslbLisence",
+        "plSourceToBronzeCslbLisence_serverless",
+        "plSourceToBronzeDropZoneCsv",
+        "plSourceToBronzeDropZoneXls",
+        "plSourceToBronzeFileSystemHeavyJob",
+        "plSourceToBronzeFileSystemHeavyJob_serverless",
+        "plSourceToBronzeFileSystemWeldOffice"
+      ],
+      "sample_expressions": [
+        "@coalesce(item().primaryKeyColumns, '')",
+        "@coalesce(item().primaryKeyColumns,'')"
+      ],
+      "use_count": 68
+    },
+    {
+      "field": "description",
+      "pipeline_count": 57,
+      "pipelines": [
+        "plSourceToBronzeAsql",
+        "plSourceToBronzeAsqlInEight",
+        "plSourceToBronzeAsqlInEight_serverless",
+        "plSourceToBronzeAsqlQdr",
+        "plSourceToBronzeAsqlQdr_serverless",
+        "plSourceToBronzeAsqlSdatWebApp",
+        "plSourceToBronzeAsqlSdatWebApp_serverless",
+        "plSourceToBronzeAsql_serverless",
+        "plSourceToBronzeAsqlgng",
+        "plSourceToBronzeAsqltimesheetApp",
+        "plSourceToBronzeCslbLisence",
+        "plSourceToBronzeCslbLisence_serverless",
+        "plSourceToBronzeFileSystemHeavyJob",
+        "plSourceToBronzeFileSystemHeavyJob_serverless",
+        "plSourceToBronzeFileSystemWeldOffice",
+        "plSourceToBronzeGraphQlApiAzureCostManagement",
+        "plSourceToBronzeGraphQlApiSiteSense",
+        "plSourceToBronzeRestApiAAD",
+        "plSourceToBronzeRestApiAAD_serverless",
+        "plSourceToBronzeRestApiCosetial"
+      ],
+      "sample_expressions": [
+        "@coalesce(item().description, '')"
+      ],
+      "use_count": 63
+    },
+    {
+      "field": "ObjectName",
+      "pipeline_count": 59,
+      "pipelines": [
+        "plSourceToBronzeAsql",
+        "plSourceToBronzeAsqlInEight",
+        "plSourceToBronzeAsqlInEight_serverless",
+        "plSourceToBronzeAsqlQdr",
+        "plSourceToBronzeAsqlQdr_serverless",
+        "plSourceToBronzeAsqlSdatWebApp",
+        "plSourceToBronzeAsqlSdatWebApp_serverless",
+        "plSourceToBronzeAsql_serverless",
+        "plSourceToBronzeAsqlgng",
+        "plSourceToBronzeAsqltimesheetApp",
+        "plSourceToBronzeCslbLisence",
+        "plSourceToBronzeCslbLisence_serverless",
+        "plSourceToBronzeDropZoneCsv",
+        "plSourceToBronzeDropZoneXls",
+        "plSourceToBronzeFileSystemHeavyJob",
+        "plSourceToBronzeFileSystemHeavyJob_serverless",
+        "plSourceToBronzeFileSystemWeldOffice",
+        "plSourceToBronzeGraphQlApiAzureCostManagement",
+        "plSourceToBronzeGraphQlApiSiteSense",
+        "plSourceToBronzeRestApiAAD"
+      ],
+      "sample_expressions": [
+        "<b>Notebook:</b> /data_engineering/Source2Raw/Source2RawIncrementalLoad <br><b>ObjectSchema: </b> @{coalesce(item().ObjectSchema, '')} <br><b>ObjectName: </b...",
+        "<b>Notebook:</b> /Users/gpabbathi@sundt.com/Site_Sense_columns <br><b>ObjectSchema: </b> @{coalesce(item().ObjectSchema, '')} <br><b>ObjectName: </b> @{item(...",
+        "<b>Notebook:</b> /data_engineering/100_raw_to_bronze/raw_to_bronze <br><b>ObjectSchema: </b> @{coalesce(item().ObjectSchema, '')} <br><b>ObjectName: </b> @{i..."
+      ],
+      "use_count": 61
+    },
+    {
+      "field": "ObjectSchema",
+      "pipeline_count": 59,
+      "pipelines": [
+        "plSourceToBronzeAsql",
+        "plSourceToBronzeAsqlInEight",
+        "plSourceToBronzeAsqlInEight_serverless",
+        "plSourceToBronzeAsqlQdr",
+        "plSourceToBronzeAsqlQdr_serverless",
+        "plSourceToBronzeAsqlSdatWebApp",
+        "plSourceToBronzeAsqlSdatWebApp_serverless",
+        "plSourceToBronzeAsql_serverless",
+        "plSourceToBronzeAsqlgng",
+        "plSourceToBronzeAsqltimesheetApp",
+        "plSourceToBronzeCslbLisence",
+        "plSourceToBronzeCslbLisence_serverless",
+        "plSourceToBronzeDropZoneCsv",
+        "plSourceToBronzeDropZoneXls",
+        "plSourceToBronzeFileSystemHeavyJob",
+        "plSourceToBronzeFileSystemHeavyJob_serverless",
+        "plSourceToBronzeFileSystemWeldOffice",
+        "plSourceToBronzeGraphQlApiAzureCostManagement",
+        "plSourceToBronzeGraphQlApiSiteSense",
+        "plSourceToBronzeRestApiAAD"
+      ],
+      "sample_expressions": [
+        "<b>Notebook:</b> /data_engineering/Source2Raw/Source2RawIncrementalLoad <br><b>ObjectSchema: </b> @{coalesce(item().ObjectSchema, '')} <br><b>ObjectName: </b...",
+        "<b>Notebook:</b> /Users/gpabbathi@sundt.com/Site_Sense_columns <br><b>ObjectSchema: </b> @{coalesce(item().ObjectSchema, '')} <br><b>ObjectName: </b> @{item(...",
+        "<b>Notebook:</b> /data_engineering/100_raw_to_bronze/raw_to_bronze <br><b>ObjectSchema: </b> @{coalesce(item().ObjectSchema, '')} <br><b>ObjectName: </b> @{i..."
+      ],
+      "use_count": 61
+    },
+    {
+      "field": "connectionSecretName",
+      "pipeline_count": 24,
+      "pipelines": [
+        "plSourceToBronzeAsql",
+        "plSourceToBronzeAsqlInEight",
+        "plSourceToBronzeAsqlInEight_serverless",
+        "plSourceToBronzeAsqlQdr",
+        "plSourceToBronzeAsqlQdr_serverless",
+        "plSourceToBronzeAsql_serverless",
+        "plSourceToBronzeAsqlgng",
+        "plSourceToBronzeAsqltimesheetApp",
+        "plSourceToBronzeFileSystemHeavyJob",
+        "plSourceToBronzeFileSystemHeavyJob_serverless",
+        "plSourceToBronzeSharepoint_serverless",
+        "plSourceToBronzeSql",
+        "plSourceToBronzeSqlConcur",
+        "plSourceToBronzeSqlCosential",
+        "plSourceToBronzeSqlCosential_serverless",
+        "plSourceToBronzeSqlDEstimator",
+        "plSourceToBronzeSqlDEstimator_serverless",
+        "plSourceToBronzeSqlE1",
+        "plSourceToBronzeSqlE1_serverless",
+        "plSourceToBronzeSqlIneightDocument"
+      ],
+      "sample_expressions": [
+        "@item().connectionSecretName"
+      ],
+      "use_count": 55
+    },
+    {
+      "field": "destinationObjectName",
+      "pipeline_count": 5,
+      "pipelines": [
+        "plBronzeToSilver",
+        "plBronzeToSilverFullLoad",
+        "plBronzeToSilver_serverless",
+        "plSilverToGoldChild",
+        "plSilverToGoldChild_serverless"
+      ],
+      "sample_expressions": [
+        "@item().destinationObjectName",
+        "Notebook Failure: @{pipeline().Pipeline} for @{item().destinationObjectSchema}.@{item().destinationObjectName}",
+        "<b>Notebook:</b> @{item().dataProcessPathOrProcedure} <br><b>ObjectSchema: </b> @{item().destinationObjectSchema} <br><b>ObjectName: </b> @{item().destinatio..."
+      ],
+      "use_count": 43
+    },
+    {
+      "field": "destinationObjectSchema",
+      "pipeline_count": 5,
+      "pipelines": [
+        "plBronzeToSilver",
+        "plBronzeToSilverFullLoad",
+        "plBronzeToSilver_serverless",
+        "plSilverToGoldChild",
+        "plSilverToGoldChild_serverless"
+      ],
+      "sample_expressions": [
+        "@item().destinationObjectSchema",
+        "Notebook Failure: @{pipeline().Pipeline} for @{item().destinationObjectSchema}.@{item().destinationObjectName}",
+        "<b>Notebook:</b> @{item().dataProcessPathOrProcedure} <br><b>ObjectSchema: </b> @{item().destinationObjectSchema} <br><b>ObjectName: </b> @{item().destinatio..."
+      ],
+      "use_count": 43
+    },
+    {
+      "field": "sourceQuery",
+      "pipeline_count": 19,
+      "pipelines": [
+        "plSourceToBronzeAsql",
+        "plSourceToBronzeAsqlInEight",
+        "plSourceToBronzeAsqlInEight_serverless",
+        "plSourceToBronzeAsqlSdatWebApp",
+        "plSourceToBronzeAsqlSdatWebApp_serverless",
+        "plSourceToBronzeAsql_serverless",
+        "plSourceToBronzeAsqlgng",
+        "plSourceToBronzeAsqltimesheetApp",
+        "plSourceToBronzeSql",
+        "plSourceToBronzeSqlConcur",
+        "plSourceToBronzeSqlDEstimator",
+        "plSourceToBronzeSqlDEstimator_serverless",
+        "plSourceToBronzeSqlE1",
+        "plSourceToBronzeSqlE1_serverless",
+        "plSourceToBronzeSqlIneightDocument",
+        "plSourceToBronzeSqlIneightDocument_serverless",
+        "plSourceToBronzeSqlIneightEstimate",
+        "plSourceToBronzeSql_Referencedb",
+        "plSourceToBronzeSql_serverless"
+      ],
+      "sample_expressions": [
+        "@coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName))",
+        "@coalesce(item().sourceQuery, activity('Remove special characters in column names').output.firstRow.Query)",
+        "@coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName), ' WHERE ', item().watermarkColumn, ' >= ', item().waterm..."
+      ],
+      "use_count": 30
+    },
+    {
+      "field": "dataProcessId",
+      "pipeline_count": 5,
+      "pipelines": [
+        "plBronzeToSilver",
+        "plBronzeToSilverFullLoad",
+        "plBronzeToSilver_serverless",
+        "plSilverToGoldChild",
+        "plSilverToGoldChild_serverless"
+      ],
+      "sample_expressions": [
+        "@item().dataProcessId"
+      ],
+      "use_count": 17
+    },
+    {
+      "field": "userName",
+      "pipeline_count": 8,
+      "pipelines": [
+        "plSourceToBronzeAsql",
+        "plSourceToBronzeAsqlQdr",
+        "plSourceToBronzeAsqlQdr_serverless",
+        "plSourceToBronzeAsql_serverless",
+        "plSourceToBronzeAsqlgng",
+        "plSourceToBronzeAsqltimesheetApp",
+        "plSourceToBronzeFileSystemHeavyJob",
+        "plSourceToBronzeFileSystemHeavyJob_serverless"
+      ],
+      "sample_expressions": [
+        "@item().userName"
+      ],
+      "use_count": 14
+    },
+    {
+      "field": "databaseName",
+      "pipeline_count": 6,
+      "pipelines": [
+        "plSourceToBronzeAsql",
+        "plSourceToBronzeAsqlQdr",
+        "plSourceToBronzeAsqlQdr_serverless",
+        "plSourceToBronzeAsql_serverless",
+        "plSourceToBronzeAsqlgng",
+        "plSourceToBronzeAsqltimesheetApp"
+      ],
+      "sample_expressions": [
+        "@item().databaseName"
+      ],
+      "use_count": 12
+    },
+    {
+      "field": "serverName",
+      "pipeline_count": 6,
+      "pipelines": [
+        "plSourceToBronzeAsql",
+        "plSourceToBronzeAsqlQdr",
+        "plSourceToBronzeAsqlQdr_serverless",
+        "plSourceToBronzeAsql_serverless",
+        "plSourceToBronzeAsqlgng",
+        "plSourceToBronzeAsqltimesheetApp"
+      ],
+      "sample_expressions": [
+        "@item().serverName"
+      ],
+      "use_count": 12
+    },
+    {
+      "field": "watermarkColumn",
+      "pipeline_count": 11,
+      "pipelines": [
+        "plSourceToBronzeAsql",
+        "plSourceToBronzeAsql_serverless",
+        "plSourceToBronzeAsqlgng",
+        "plSourceToBronzeAsqltimesheetApp",
+        "plSourceToBronzeSqlConcur",
+        "plSourceToBronzeSqlCosential",
+        "plSourceToBronzeSqlCosential_serverless",
+        "plSourceToBronzeSqlDEstimator",
+        "plSourceToBronzeSqlDEstimator_serverless",
+        "plSourceToBronzeSqlIneightDocument",
+        "plSourceToBronzeSqlIneightDocument_serverless"
+      ],
+      "sample_expressions": [
+        "SELECT * FROM @{item().objectSchema}.@{item().objectName} WHERE @{item().watermarkColumn} >= '@{item().watermarkValue}'",
+        "@coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName), ' WHERE ', item().watermarkColumn, ' >= ', item().waterm...",
+        "@concat(activity('Remove special characters in column names incremental').output.firstRow.Query, ' WHERE ''', item().watermarkColumn, ''', >= ', item().water..."
+      ],
+      "use_count": 11
+    },
+    {
+      "field": "watermarkValue",
+      "pipeline_count": 11,
+      "pipelines": [
+        "plSourceToBronzeAsql",
+        "plSourceToBronzeAsql_serverless",
+        "plSourceToBronzeAsqlgng",
+        "plSourceToBronzeAsqltimesheetApp",
+        "plSourceToBronzeSqlConcur",
+        "plSourceToBronzeSqlCosential",
+        "plSourceToBronzeSqlCosential_serverless",
+        "plSourceToBronzeSqlDEstimator",
+        "plSourceToBronzeSqlDEstimator_serverless",
+        "plSourceToBronzeSqlIneightDocument",
+        "plSourceToBronzeSqlIneightDocument_serverless"
+      ],
+      "sample_expressions": [
+        "SELECT * FROM @{item().objectSchema}.@{item().objectName} WHERE @{item().watermarkColumn} >= '@{item().watermarkValue}'",
+        "@coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName), ' WHERE ', item().watermarkColumn, ' >= ', item().waterm...",
+        "@concat(activity('Remove special characters in column names incremental').output.firstRow.Query, ' WHERE ''', item().watermarkColumn, ''', >= ', item().water..."
+      ],
+      "use_count": 11
+    },
+    {
+      "field": "level",
+      "pipeline_count": 2,
+      "pipelines": [
+        "plSilverToGoldParent",
+        "plSilverToGoldParent_serverless"
+      ],
+      "sample_expressions": [
+        "@item().level",
+        "Gold Child Pipeline Failure - Level @{item().level}",
+        "<b>Message:</b> The child pipeline failed for level: @{item().level} <br><b>Error Code: </b> @{activity('execute child pipeline').error.errorCode} <br><b>Err..."
+      ],
+      "use_count": 10
+    },
+    {
+      "field": "dataProcessPathOrProcedure",
+      "pipeline_count": 5,
+      "pipelines": [
+        "plBronzeToSilver",
+        "plBronzeToSilverFullLoad",
+        "plBronzeToSilver_serverless",
+        "plSilverToGoldChild",
+        "plSilverToGoldChild_serverless"
+      ],
+      "sample_expressions": [
+        "@item().dataProcessPathOrProcedure",
+        "<b>Notebook:</b> @{item().dataProcessPathOrProcedure} <br><b>ObjectSchema: </b> @{item().destinationObjectSchema} <br><b>ObjectName: </b> @{item().destinatio...",
+        "/data_engineering/@{item().dataProcessPathOrProcedure}"
+      ],
+      "use_count": 9
+    },
+    {
+      "field": "dataLakeEntityName",
+      "pipeline_count": 2,
+      "pipelines": [
+        "plSourceToBronzeDropZoneCsv",
+        "plSourceToBronzeDropZoneXls"
+      ],
+      "sample_expressions": [
+        "@item().dataLakeEntityName",
+        "@concat(item().dataLakePath,'/archive/', item().dataLakeEntityName, '/year-' ,string(formatDateTime(variables('utcTimestamp'),'yyyy')), '/month-' ,string(for..."
+      ],
+      "use_count": 8
+    },
+    {
+      "field": "dataLakePath",
+      "pipeline_count": 2,
+      "pipelines": [
+        "plSourceToBronzeDropZoneCsv",
+        "plSourceToBronzeDropZoneXls"
+      ],
+      "sample_expressions": [
+        "@item().dataLakePath",
+        "@concat(item().dataLakePath,'/archive/', item().dataLakeEntityName, '/year-' ,string(formatDateTime(variables('utcTimestamp'),'yyyy')), '/month-' ,string(for..."
+      ],
+      "use_count": 6
+    },
+    {
+      "field": "partitionBy",
+      "pipeline_count": 5,
+      "pipelines": [
+        "plBronzeToSilver",
+        "plBronzeToSilverFullLoad",
+        "plBronzeToSilver_serverless",
+        "plSourceToBronzeDropZoneCsv",
+        "plSourceToBronzeDropZoneXls"
+      ],
+      "sample_expressions": [
+        "@coalesce(item().partitionBy, '')",
+        "@coalesce(item().partitionBy,'')"
+      ],
+      "use_count": 5
+    },
+    {
+      "field": "piiColumns",
+      "pipeline_count": 5,
+      "pipelines": [
+        "plBronzeToSilver",
+        "plBronzeToSilverFullLoad",
+        "plBronzeToSilver_serverless",
+        "plSilverToGoldChild",
+        "plSilverToGoldChild_serverless"
+      ],
+      "sample_expressions": [
+        "@coalesce(item().piiColumns, '')"
+      ],
+      "use_count": 5
+    },
+    {
+      "field": "dataLakeContainerName",
+      "pipeline_count": 2,
+      "pipelines": [
+        "plSourceToBronzeDropZoneCsv",
+        "plSourceToBronzeDropZoneXls"
+      ],
+      "sample_expressions": [
+        "@item().dataLakeContainerName"
+      ],
+      "use_count": 4
+    },
+    {
+      "field": "dataProcessID",
+      "pipeline_count": 3,
+      "pipelines": [
+        "plBronzeToSilver",
+        "plBronzeToSilverFullLoad",
+        "plBronzeToSilver_serverless"
+      ],
+      "sample_expressions": [
+        "@item().dataProcessID"
+      ],
+      "use_count": 3
+    },
+    {
+      "field": "projectIdColumn",
+      "pipeline_count": 3,
+      "pipelines": [
+        "plBronzeToSilver",
+        "plBronzeToSilverFullLoad",
+        "plBronzeToSilver_serverless"
+      ],
+      "sample_expressions": [
+        "@coalesce(item().projectIdColumn, '')"
+      ],
+      "use_count": 3
+    },
+    {
+      "field": "propertyValue",
+      "pipeline_count": 1,
+      "pipelines": [
+        "plSelfHostedIntegrationRuntime"
+      ],
+      "sample_expressions": [
+        "@concat(item().propertyValue,'/', item().resourceName, '/Stop?api-version=2022-03-01')",
+        "@concat(item().propertyValue,'/', item().resourceName, '/Start?api-version=2022-03-01')",
+        "@concat(item().propertyValue,'/', item().resourceName, '/InstanceView?api-version=2022-03-01')"
+      ],
+      "use_count": 3
+    },
+    {
+      "field": "relativePath",
+      "pipeline_count": 3,
+      "pipelines": [
+        "plSourceToBronzeRestApiAAD",
+        "plSourceToBronzeRestApiAAD_serverless",
+        "plSourceToBronzeSharepoint_serverless"
+      ],
+      "sample_expressions": [
+        "@item().relativePath",
+        "@if(equals(item().relativePath, null), 'https://sundtconstruction.sharepoint.com/sites/DatawarehouseFiles/',concat('https://sundtconstruction.sharepoint.com/..."
+      ],
+      "use_count": 3
+    },
+    {
+      "field": "resourceName",
+      "pipeline_count": 1,
+      "pipelines": [
+        "plSelfHostedIntegrationRuntime"
+      ],
+      "sample_expressions": [
+        "@concat(item().propertyValue,'/', item().resourceName, '/Stop?api-version=2022-03-01')",
+        "@concat(item().propertyValue,'/', item().resourceName, '/Start?api-version=2022-03-01')",
+        "@concat(item().propertyValue,'/', item().resourceName, '/InstanceView?api-version=2022-03-01')"
+      ],
+      "use_count": 3
+    },
+    {
+      "field": "silverIsSnapshot",
+      "pipeline_count": 3,
+      "pipelines": [
+        "plBronzeToSilver",
+        "plBronzeToSilverFullLoad",
+        "plBronzeToSilver_serverless"
+      ],
+      "sample_expressions": [
+        "@string(coalesce(item().silverIsSnapshot, ''))"
+      ],
+      "use_count": 3
+    },
+    {
+      "field": "silverJulianDateColumns",
+      "pipeline_count": 3,
+      "pipelines": [
+        "plBronzeToSilver",
+        "plBronzeToSilverFullLoad",
+        "plBronzeToSilver_serverless"
+      ],
+      "sample_expressions": [
+        "@coalesce(item().silverJulianDateColumns, '')"
+      ],
+      "use_count": 3
+    },
+    {
+      "field": "silverSnapshotPeriod",
+      "pipeline_count": 3,
+      "pipelines": [
+        "plBronzeToSilver",
+        "plBronzeToSilverFullLoad",
+        "plBronzeToSilver_serverless"
+      ],
+      "sample_expressions": [
+        "@coalesce(item().silverSnapshotPeriod, '')"
+      ],
+      "use_count": 3
+    },
+    {
+      "field": "basePath",
+      "pipeline_count": 2,
+      "pipelines": [
+        "plSourceToBronzeRestApiAAD",
+        "plSourceToBronzeRestApiAAD_serverless"
+      ],
+      "sample_expressions": [
+        "@item().basePath"
+      ],
+      "use_count": 2
+    },
+    {
+      "field": "connectionsecretname",
+      "pipeline_count": 2,
+      "pipelines": [
+        "plSourceToBronzeAsqlInEight",
+        "plSourceToBronzeAsqlInEight_serverless"
+      ],
+      "sample_expressions": [
+        "@item().connectionsecretname"
+      ],
+      "use_count": 2
+    },
+    {
+      "field": "excelSheetName",
+      "pipeline_count": 1,
+      "pipelines": [
+        "plSourceToBronzeDropZoneXls"
+      ],
+      "sample_expressions": [
+        "@item().excelSheetName"
+      ],
+      "use_count": 2
+    },
+    {
+      "field": "partitionCount",
+      "pipeline_count": 2,
+      "pipelines": [
+        "plSourceToBronzeDropZoneCsv",
+        "plSourceToBronzeDropZoneXls"
+      ],
+      "sample_expressions": [
+        "@string(coalesce(item().partitionCount, ''))"
+      ],
+      "use_count": 2
+    },
+    {
+      "field": "pipelineName",
+      "pipeline_count": 2,
+      "pipelines": [
+        "plCheckIfRunning",
+        "plCheckIfRunningAndStopShir"
+      ],
+      "sample_expressions": [
+        "@and(less(item().runStart,addminutes(utcnow(), int(-3))), contains(item().pipelineName, pipeline().parameters.pipelineName))",
+        "@and(and(less(item().runStart,addminutes(utcnow(), int(-1))), contains(item().pipelineName, pipeline().parameters.pipelineName)), not(equals(item().pipelineN..."
+      ],
+      "use_count": 2
+    },
+    {
+      "field": "restApiEntityName",
+      "pipeline_count": 2,
+      "pipelines": [
+        "plSourceToBronzeRestApiScheduleValidator",
+        "plSourceToBronzeRestApiTexura"
+      ],
+      "sample_expressions": [
+        "/@{item().dataSourceName}/@{replace(item().restApiEntityName,'-grp','')}/@{item().objectName}/@{formatDateTime(variables('localTimestamp'), 'yyyy')}/@{format..."
+      ],
+      "use_count": 2
+    },
+    {
+      "field": "runStart",
+      "pipeline_count": 2,
+      "pipelines": [
+        "plCheckIfRunning",
+        "plCheckIfRunningAndStopShir"
+      ],
+      "sample_expressions": [
+        "@and(less(item().runStart,addminutes(utcnow(), int(-3))), contains(item().pipelineName, pipeline().parameters.pipelineName))",
+        "@and(and(less(item().runStart,addminutes(utcnow(), int(-1))), contains(item().pipelineName, pipeline().parameters.pipelineName)), not(equals(item().pipelineN..."
+      ],
+      "use_count": 2
+    },
+    {
+      "field": "status",
+      "pipeline_count": 2,
+      "pipelines": [
+        "plCheckIfRunning",
+        "plCheckIfRunningAndStopShir"
+      ],
+      "sample_expressions": [
+        "@equals(item().status,'InProgress')"
+      ],
+      "use_count": 2
+    },
+    {
+      "field": "workspacename",
+      "pipeline_count": 1,
+      "pipelines": [
+        "plMdwToPbiParentWebAppRLSTables"
+      ],
+      "sample_expressions": [
+        "PBI Child Pipeline Failure - Level @{item().workspacename}",
+        "<b>Message:</b> The child pipeline failed for dataset: @{item().workspacename} <br><b>Error Code: </b> @{activity('execute child pipeline').error.errorCode}..."
+      ],
+      "use_count": 2
+    },
+    {
+      "field": "datasetid",
+      "pipeline_count": 1,
+      "pipelines": [
+        "plMdwToPbiParentWebAppRLSTables"
+      ],
+      "sample_expressions": [
+        "@item().datasetid"
+      ],
+      "use_count": 1
+    },
+    {
+      "field": "datasetname",
+      "pipeline_count": 1,
+      "pipelines": [
+        "plMdwToPbiParentWebAppRLSTables"
+      ],
+      "sample_expressions": [
+        "@item().datasetname"
+      ],
+      "use_count": 1
+    },
+    {
+      "field": "name",
+      "pipeline_count": 1,
+      "pipelines": [
+        "plSourceArchiveClueAll"
+      ],
+      "sample_expressions": [
+        "@item().name"
+      ],
+      "use_count": 1
+    },
+    {
+      "field": "type",
+      "pipeline_count": 1,
+      "pipelines": [
+        "plSourceArchiveClueAll"
+      ],
+      "sample_expressions": [
+        "@equals(item().type,'File')"
+      ],
+      "use_count": 1
+    },
+    {
+      "field": "workspaceid",
+      "pipeline_count": 1,
+      "pipelines": [
+        "plMdwToPbiParentWebAppRLSTables"
+      ],
+      "sample_expressions": [
+        "@item().workspaceid"
+      ],
+      "use_count": 1
+    }
+  ],
+  "metadata_tables": {
+    "adf.DataProcess": 1,
+    "adf.DataProcessDependency": 1,
+    "adf.DataSource": 62,
+    "adf.azureResources": 11,
+    "adf.operationMetricLog": 14,
+    "adf.powerBiDataset": 2
+  },
+  "queries": [
+    {
+      "category": "Azure resource lookup",
+      "data_source_types": [],
+      "id": "META-QRY-00001",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.azureResources"
+      ],
+      "pipeline": "plCheckIfRunning",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT TOP 1 * FROM adf.AzureResources WHERE ResourceType = 'Azure Data Factory'",
+      "tables": [
+        "adf.azureResources"
+      ]
+    },
+    {
+      "category": "Other metadata query",
+      "data_source_types": [],
+      "id": "META-QRY-00002",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[4]/typeProperties/ifTrueActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plCheckIfRunning",
+      "pipeline_parameters": [
+        "PipelineName"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "RAISERROR('@{concat('Provided pipeline name (',pipeline().parameters.PipelineName,') still has a run in progress or queued given the query range parameters set in the variable.')}',16,1);",
+      "tables": []
+    },
+    {
+      "category": "Azure resource lookup",
+      "data_source_types": [],
+      "id": "META-QRY-00003",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[6]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.azureResources"
+      ],
+      "pipeline": "plCheckIfRunning",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT TOP 1 * FROM adf.AzureResources WHERE ResourceType = 'Subscription'",
+      "tables": [
+        "adf.azureResources"
+      ]
+    },
+    {
+      "category": "Azure resource lookup",
+      "data_source_types": [],
+      "id": "META-QRY-00004",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.azureResources"
+      ],
+      "pipeline": "plCheckIfRunningAndStopShir",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT TOP 1 * FROM adf.AzureResources WHERE ResourceType = 'Azure Data Factory'",
+      "tables": [
+        "adf.azureResources"
+      ]
+    },
+    {
+      "category": "Azure resource lookup",
+      "data_source_types": [],
+      "id": "META-QRY-00005",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[6]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.azureResources"
+      ],
+      "pipeline": "plCheckIfRunningAndStopShir",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT TOP 1 * FROM adf.AzureResources WHERE ResourceType = 'Subscription'",
+      "tables": [
+        "adf.azureResources"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "SFTP File"
+      ],
+      "id": "META-QRY-00006",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plCopyClue",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'SFTP File' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELECT...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Azure resource lookup",
+      "data_source_types": [],
+      "id": "META-QRY-00007",
+      "is_expression": false,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/ifTrueActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.azureResources"
+      ],
+      "pipeline": "plLogMsgAndSendEmail",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.azureResources WHERE resourceType = 'Logic App' AND resourceSubType = 'Email Notification'",
+      "tables": [
+        "adf.azureResources"
+      ]
+    },
+    {
+      "category": "Azure resource lookup",
+      "data_source_types": [],
+      "id": "META-QRY-00008",
+      "is_expression": false,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/ifTrueActivities[2]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.azureResources"
+      ],
+      "pipeline": "plLogMsgAndSendEmail",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.azureResources WHERE resourceType = 'Azure Data Factory' AND resourceSubType IS NULL",
+      "tables": [
+        "adf.azureResources"
+      ]
+    },
+    {
+      "category": "Other metadata query",
+      "data_source_types": [],
+      "id": "META-QRY-00009",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.powerBiDataset"
+      ],
+      "pipeline": "plMdwToPbiParentWebAppRLSTables",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.powerBiDataset WHERE isEffectiveIdentityRolesRequired = 1",
+      "tables": [
+        "adf.powerBiDataset"
+      ]
+    },
+    {
+      "category": "Process metadata lookup",
+      "data_source_types": [],
+      "id": "META-QRY-00010",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataProcess"
+      ],
+      "pipeline": "plPromoteMetadata",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM ADF.DATAPROCESS WHERE is@{variables('environment')}PromoteEnvironment = 1",
+      "tables": [
+        "adf.DataProcess"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [],
+      "id": "META-QRY-00011",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[5]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plPromoteMetadata",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM ADF.DATASOURCE WHERE is@{variables('environment')}PromoteEnvironment = 1",
+      "tables": [
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Process dependency lookup",
+      "data_source_types": [],
+      "id": "META-QRY-00012",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[8]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataProcessDependency"
+      ],
+      "pipeline": "plPromoteMetadata",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM ADF.DATAPROCESSDEPENDENCY WHERE is@{variables('environment')}PromoteEnvironment = 1",
+      "tables": [
+        "adf.DataProcessDependency"
+      ]
+    },
+    {
+      "category": "Azure resource lookup",
+      "data_source_types": [],
+      "id": "META-QRY-00013",
+      "is_expression": false,
+      "item_fields": [],
+      "json_path": "properties/activities[0]/typeProperties/ifTrueActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.azureResources"
+      ],
+      "pipeline": "plRowCountValidateSendEmail",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.azureResources WHERE resourceType = 'Logic App' AND resourceSubType = 'Email Notification'",
+      "tables": [
+        "adf.azureResources"
+      ]
+    },
+    {
+      "category": "Azure resource lookup",
+      "data_source_types": [],
+      "id": "META-QRY-00014",
+      "is_expression": false,
+      "item_fields": [],
+      "json_path": "properties/activities[0]/typeProperties/ifTrueActivities[2]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.azureResources"
+      ],
+      "pipeline": "plRowCountValidateSendEmail",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.azureResources WHERE resourceType = 'Azure Data Factory' AND resourceSubType IS NULL",
+      "tables": [
+        "adf.azureResources"
+      ]
+    },
+    {
+      "category": "Azure resource lookup",
+      "data_source_types": [],
+      "id": "META-QRY-00015",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.azureResources"
+      ],
+      "pipeline": "plSelfHostedIntegrationRuntime",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT TOP 1 * FROM adf.AzureResources WHERE resourceType = 'Virtual Machine' AND resourceSubType = 'Self-Hosted Integration Runtime' AND (resourceEnvironment <> 'Prod' OR resourceEnvironment <> 'Production')",
+      "tables": [
+        "adf.azureResources"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "Azure SQL Database"
+      ],
+      "id": "META-QRY-00016",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeAsql",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'Azure SQL Database' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName I...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00017",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "sourceQuery"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[6]/typeProperties/ifFalseActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeAsql",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName))",
+      "tables": []
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00018",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "watermarkColumn",
+        "watermarkValue"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[6]/typeProperties/ifTrueActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeAsql",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM @{item().objectSchema}.@{item().objectName} WHERE @{item().watermarkColumn} >= '@{item().watermarkValue}'",
+      "tables": []
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "Azure SQL Database"
+      ],
+      "id": "META-QRY-00019",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeAsqlInEight",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'Azure SQL Database' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName I...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00020",
+      "is_expression": true,
+      "item_fields": [
+        "sourceQuery"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[6]/typeProperties/ifFalseActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeAsqlInEight",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@coalesce(item().sourceQuery, activity('Remove special characters in column names').output.firstRow.Query)",
+      "tables": []
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00021",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[6]/typeProperties/ifFalseActivities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeAsqlInEight",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@concat(' DECLARE @s VARCHAR(MAX) DECLARE @tablename VARCHAR(500) = ''',item().objectName,''' DECLARE @schemaname VARCHAR(500) = ''',item().objectSchema,''' SELECT @s = ISNULL(@s + '', '','''') + ''['' + c.name + '']'' + '' as ''+ ''['' + REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(c.name,'' '',''_''), ''&'',''and''), '' '',''_''), ''-'',''_''), '':'',''_''), '','',''''), ''{'',''_''), ''}'',''_''), ''('',''_''), '')'',''_''), ''\"'',''_'') + '']'' F...",
+      "tables": [
+        "sys.all_columns",
+        "sys.schemas",
+        "sys.views"
+      ]
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00022",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[6]/typeProperties/ifTrueActivities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeAsqlInEight",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@concat(' DECLARE @s VARCHAR(MAX) DECLARE @tablename VARCHAR(500) = ''',item().objectName,''' DECLARE @schemaname VARCHAR(500) = ''',item().objectSchema,''' SELECT @s = ISNULL(@s + '', '','''') + ''['' + c.name + '']'' + '' as ''+ ''['' + REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(c.name,'' '',''_''), ''&'',''and''), '' '',''_''), ''-'',''_''), '':'',''_''), '','',''''), ''{'',''_''), ''}'',''_''), ''('',''_''), '')'',''_''), ''\"'',''_'') + '']'' F...",
+      "tables": [
+        "sys.all_columns",
+        "sys.schemas",
+        "sys.views"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "Azure SQL Database"
+      ],
+      "id": "META-QRY-00023",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeAsqlInEight_serverless",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'Azure SQL Database' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName I...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00024",
+      "is_expression": true,
+      "item_fields": [
+        "sourceQuery"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[5]/typeProperties/ifFalseActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeAsqlInEight_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@coalesce(item().sourceQuery, activity('Remove special characters in column names').output.firstRow.Query)",
+      "tables": []
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00025",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[5]/typeProperties/ifFalseActivities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeAsqlInEight_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@concat(' DECLARE @s VARCHAR(MAX) DECLARE @tablename VARCHAR(500) = ''',item().objectName,''' DECLARE @schemaname VARCHAR(500) = ''',item().objectSchema,''' SELECT @s = ISNULL(@s + '', '','''') + ''['' + c.name + '']'' + '' as ''+ ''['' + REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(c.name,'' '',''_''), ''&'',''and''), '' '',''_''), ''-'',''_''), '':'',''_''), '','',''''), ''{'',''_''), ''}'',''_''), ''('',''_''), '')'',''_''), ''\"'',''_'') + '']'' F...",
+      "tables": [
+        "sys.all_columns",
+        "sys.schemas",
+        "sys.views"
+      ]
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00026",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[5]/typeProperties/ifTrueActivities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeAsqlInEight_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@concat(' DECLARE @s VARCHAR(MAX) DECLARE @tablename VARCHAR(500) = ''',item().objectName,''' DECLARE @schemaname VARCHAR(500) = ''',item().objectSchema,''' SELECT @s = ISNULL(@s + '', '','''') + ''['' + c.name + '']'' + '' as ''+ ''['' + REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(c.name,'' '',''_''), ''&'',''and''), '' '',''_''), ''-'',''_''), '':'',''_''), '','',''''), ''{'',''_''), ''}'',''_''), ''('',''_''), '')'',''_''), ''\"'',''_'') + '']'' F...",
+      "tables": [
+        "sys.all_columns",
+        "sys.schemas",
+        "sys.views"
+      ]
+    },
+    {
+      "category": "Operational metrics lookup",
+      "data_source_types": [],
+      "id": "META-QRY-00027",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/activities[8]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.operationMetricLog"
+      ],
+      "pipeline": "plSourceToBronzeAsqlInEight_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@concat('select operationMetricLogId as metricLogId, copyActivityRowsRead as rowsRead, deltaTableUpsertNumberSourceRows as numSourceRows, deltaTableUpsertNumberTargetRowsInserted as targetRowsInserted, deltaTableUpsertNumberTargetRowsUpdated as targetRowsUpdated, deltaTableInsertNumberOutputRows as numOutputRows from [adf].[operationMetricLog] where operationMetricLogId = ', variables('MetricLogId'), ';')",
+      "tables": [
+        "adf.operationMetricLog"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "Azure SQL Database"
+      ],
+      "id": "META-QRY-00028",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeAsqlQdr",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'Azure SQL Database' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName I...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00029",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[6]/typeProperties/ifFalseActivities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeAsqlQdr",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@concat(' DECLARE @s VARCHAR(MAX) DECLARE @tablename VARCHAR(500) = ''',item().objectName,''' DECLARE @schemaname VARCHAR(500) = ''',item().objectSchema,''' SELECT @s = ISNULL(@s + '', '','''') + ''['' + c.name + '']'' + '' as ''+ ''['' + REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(c.name,'' '',''_''),''&'',''and''), '' '',''_''), ''-'',''_''), '':'',''_''),'','',''''), ''{'',''_''), ''}'',''_''), ''('',''_''), '')'',''_''), ''\"'',''_''), ''...",
+      "tables": [
+        "sys.all_columns",
+        "sys.tables"
+      ]
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00030",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[6]/typeProperties/ifTrueActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeAsqlQdr",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@concat(' DECLARE @s VARCHAR(MAX) DECLARE @tablename VARCHAR(500) = ''',item().objectName,''' DECLARE @schemaname VARCHAR(500) = ''',item().objectSchema,''' SELECT @s = ISNULL(@s + '', '','''') + ''['' + c.name + '']'' + '' as ''+ ''['' + REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(c.name,'' '',''_''),''&'',''and''), '' '',''_''), ''-'',''_''), '':'',''_''),'','',''''), ''{'',''_''), ''}'',''_''), ''('',''_''), '')'',''_''), ''\"'',''_''), ''...",
+      "tables": [
+        "sys.all_columns",
+        "sys.tables"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "Azure SQL Database"
+      ],
+      "id": "META-QRY-00031",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeAsqlQdr_serverless",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'Azure SQL Database' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName I...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00032",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[5]/typeProperties/ifFalseActivities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeAsqlQdr_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@concat(' DECLARE @s VARCHAR(MAX) DECLARE @tablename VARCHAR(500) = ''',item().objectName,''' DECLARE @schemaname VARCHAR(500) = ''',item().objectSchema,''' SELECT @s = ISNULL(@s + '', '','''') + ''['' + c.name + '']'' + '' as ''+ ''['' + REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(c.name,'' '',''_''),''&'',''and''), '' '',''_''), ''-'',''_''), '':'',''_''),'','',''''), ''{'',''_''), ''}'',''_''), ''('',''_''), '')'',''_''), ''\"'',''_''), ''...",
+      "tables": [
+        "sys.all_columns",
+        "sys.tables"
+      ]
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00033",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[5]/typeProperties/ifTrueActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeAsqlQdr_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@concat(' DECLARE @s VARCHAR(MAX) DECLARE @tablename VARCHAR(500) = ''',item().objectName,''' DECLARE @schemaname VARCHAR(500) = ''',item().objectSchema,''' SELECT @s = ISNULL(@s + '', '','''') + ''['' + c.name + '']'' + '' as ''+ ''['' + REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(c.name,'' '',''_''),''&'',''and''), '' '',''_''), ''-'',''_''), '':'',''_''),'','',''''), ''{'',''_''), ''}'',''_''), ''('',''_''), '')'',''_''), ''\"'',''_''), ''...",
+      "tables": [
+        "sys.all_columns",
+        "sys.tables"
+      ]
+    },
+    {
+      "category": "Operational metrics lookup",
+      "data_source_types": [],
+      "id": "META-QRY-00034",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/activities[8]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.operationMetricLog"
+      ],
+      "pipeline": "plSourceToBronzeAsqlQdr_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@concat('select operationMetricLogId as metricLogId, copyActivityRowsRead as rowsRead, deltaTableUpsertNumberSourceRows as numSourceRows, deltaTableUpsertNumberTargetRowsInserted as targetRowsInserted, deltaTableUpsertNumberTargetRowsUpdated as targetRowsUpdated, deltaTableInsertNumberOutputRows as numOutputRows from [adf].[operationMetricLog] where operationMetricLogId = ', variables('MetricLogId'), ';')",
+      "tables": [
+        "adf.operationMetricLog"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "Azure SQL Database - SDAT Web App"
+      ],
+      "id": "META-QRY-00035",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeAsqlSdatWebApp",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'Azure SQL Database - SDAT Web App' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00036",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "sourceQuery"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[6]/typeProperties/ifFalseActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeAsqlSdatWebApp",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName))",
+      "tables": []
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "Azure SQL Database - SDAT Web App"
+      ],
+      "id": "META-QRY-00037",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeAsqlSdatWebApp_serverless",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'Azure SQL Database - SDAT Web App' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00038",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "sourceQuery"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[5]/typeProperties/ifFalseActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeAsqlSdatWebApp_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName))",
+      "tables": []
+    },
+    {
+      "category": "Operational metrics lookup",
+      "data_source_types": [],
+      "id": "META-QRY-00039",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/activities[8]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.operationMetricLog"
+      ],
+      "pipeline": "plSourceToBronzeAsqlSdatWebApp_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@concat('select operationMetricLogId as metricLogId, copyActivityRowsRead as rowsRead, deltaTableUpsertNumberSourceRows as numSourceRows, deltaTableUpsertNumberTargetRowsInserted as targetRowsInserted, deltaTableUpsertNumberTargetRowsUpdated as targetRowsUpdated, deltaTableInsertNumberOutputRows as numOutputRows from [adf].[operationMetricLog] where operationMetricLogId = ', variables('MetricLogId'), ';')",
+      "tables": [
+        "adf.operationMetricLog"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "Azure SQL Database"
+      ],
+      "id": "META-QRY-00040",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeAsql_serverless",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'Azure SQL Database' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName I...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00041",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "sourceQuery"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[5]/typeProperties/ifFalseActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeAsql_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName))",
+      "tables": []
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00042",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "watermarkColumn",
+        "watermarkValue"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[5]/typeProperties/ifTrueActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeAsql_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM @{item().objectSchema}.@{item().objectName} WHERE @{item().watermarkColumn} >= '@{item().watermarkValue}'",
+      "tables": []
+    },
+    {
+      "category": "Operational metrics lookup",
+      "data_source_types": [],
+      "id": "META-QRY-00043",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/activities[8]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.operationMetricLog"
+      ],
+      "pipeline": "plSourceToBronzeAsql_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@concat('select operationMetricLogId as metricLogId, copyActivityRowsRead as rowsRead, deltaTableUpsertNumberSourceRows as numSourceRows, deltaTableUpsertNumberTargetRowsInserted as targetRowsInserted, deltaTableUpsertNumberTargetRowsUpdated as targetRowsUpdated, deltaTableInsertNumberOutputRows as numOutputRows from [adf].[operationMetricLog] where operationMetricLogId = ', variables('MetricLogId'), ';')",
+      "tables": [
+        "adf.operationMetricLog"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "Azure SQL Server"
+      ],
+      "id": "META-QRY-00044",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeAsqlgng",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'Azure SQL Server' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00045",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "sourceQuery"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[6]/typeProperties/ifFalseActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeAsqlgng",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName))",
+      "tables": []
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00046",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "watermarkColumn",
+        "watermarkValue"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[6]/typeProperties/ifTrueActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeAsqlgng",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM @{item().objectSchema}.@{item().objectName} WHERE @{item().watermarkColumn} >= '@{item().watermarkValue}'",
+      "tables": []
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "Azure SQL Database"
+      ],
+      "id": "META-QRY-00047",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeAsqltimesheetApp",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'Azure SQL Database' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName I...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00048",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "sourceQuery"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[6]/typeProperties/ifFalseActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeAsqltimesheetApp",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName))",
+      "tables": []
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00049",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "watermarkColumn",
+        "watermarkValue"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[6]/typeProperties/ifTrueActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeAsqltimesheetApp",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM @{item().objectSchema}.@{item().objectName} WHERE @{item().watermarkColumn} >= '@{item().watermarkValue}'",
+      "tables": []
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "API"
+      ],
+      "id": "META-QRY-00050",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeCslbLisence",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.dataSource WHERE upper(dataSourceType) = 'API' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELEC...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "API"
+      ],
+      "id": "META-QRY-00051",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeCslbLisence_serverless",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.dataSource WHERE upper(dataSourceType) = 'API' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELEC...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "drop-zone"
+      ],
+      "id": "META-QRY-00052",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeDropZoneCsv",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'drop-zone' AND datalakeFileType = 'csv' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "drop-zone"
+      ],
+      "id": "META-QRY-00053",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeDropZoneXls",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'drop-zone' AND datalakeFileType = 'xlsx' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "File System"
+      ],
+      "id": "META-QRY-00054",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeFileSystemHeavyJob",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'File System' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELE...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "File System"
+      ],
+      "id": "META-QRY-00055",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeFileSystemHeavyJob_serverless",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'File System' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELE...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Operational metrics lookup",
+      "data_source_types": [],
+      "id": "META-QRY-00056",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/activities[11]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.operationMetricLog"
+      ],
+      "pipeline": "plSourceToBronzeFileSystemHeavyJob_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@concat('select operationMetricLogId as metricLogId, copyActivityRowsRead as rowsRead, deltaTableUpsertNumberSourceRows as numSourceRows, deltaTableUpsertNumberTargetRowsInserted as targetRowsInserted, deltaTableUpsertNumberTargetRowsUpdated as targetRowsUpdated, deltaTableInsertNumberOutputRows as numOutputRows from [adf].[operationMetricLog] where operationMetricLogId = ', variables('MetricLogId'), ';')",
+      "tables": [
+        "adf.operationMetricLog"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "File System"
+      ],
+      "id": "META-QRY-00057",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeFileSystemWeldOffice",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'File System' AND ( NULLIF(NULLIF(LTRIM(RTRIM('@{pipeline().parameters.dataSourceName}')), '-'),'') IS NULL OR dataSourceName IN ( SELECT TRIM(value) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ',') ) ) AND ( NULLIF(NULLIF(LTRIM(RTRIM('@{pipeline().parameters.objectSchema}')), '-'),'') IS NULL OR objectSchema IN ( SELECT TRIM(value) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ',') ) ) AND ( NULLIF(NULLIF(LTRIM...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "GRAPHQL API"
+      ],
+      "id": "META-QRY-00058",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeGraphQlApiAzureCostManagement",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.dataSource WHERE upper(dataSourceType) = 'GRAPHQL API' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName I...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "GRAPHQL API"
+      ],
+      "id": "META-QRY-00059",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeGraphQlApiSiteSense",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.dataSource WHERE upper(dataSourceType) = 'GRAPHQL API' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName I...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "REST API"
+      ],
+      "id": "META-QRY-00060",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeRestApiAAD",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.dataSource WHERE upper(dataSourceType) = 'REST API' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Azure resource lookup",
+      "data_source_types": [],
+      "id": "META-QRY-00061",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[5]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.azureResources"
+      ],
+      "pipeline": "plSourceToBronzeRestApiAAD",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT TOP 1 * FROM adf.AzureResources WHERE ResourceType = 'Key Vault'",
+      "tables": [
+        "adf.azureResources"
+      ]
+    },
+    {
+      "category": "Operational metrics lookup",
+      "data_source_types": [],
+      "id": "META-QRY-00062",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/activities[10]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.operationMetricLog"
+      ],
+      "pipeline": "plSourceToBronzeRestApiAAD_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@concat('select operationMetricLogId as metricLogId, copyActivityRowsRead as rowsRead, deltaTableUpsertNumberSourceRows as numSourceRows, deltaTableUpsertNumberTargetRowsInserted as targetRowsInserted, deltaTableUpsertNumberTargetRowsUpdated as targetRowsUpdated, deltaTableInsertNumberOutputRows as numOutputRows from [adf].[operationMetricLog] where operationMetricLogId = ', variables('MetricLogId'), ';')",
+      "tables": [
+        "adf.operationMetricLog"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "REST API"
+      ],
+      "id": "META-QRY-00063",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeRestApiAAD_serverless",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.dataSource WHERE upper(dataSourceType) = 'REST API' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Azure resource lookup",
+      "data_source_types": [],
+      "id": "META-QRY-00064",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[5]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.azureResources"
+      ],
+      "pipeline": "plSourceToBronzeRestApiAAD_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT TOP 1 * FROM adf.AzureResources WHERE ResourceType = 'Key Vault'",
+      "tables": [
+        "adf.azureResources"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "REST API"
+      ],
+      "id": "META-QRY-00065",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeRestApiCosetial",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.dataSource WHERE upper(dataSourceType) = 'REST API' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "REST API"
+      ],
+      "id": "META-QRY-00066",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeRestApiCosetial_serverless",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.dataSource WHERE upper(dataSourceType) = 'REST API' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "REST API"
+      ],
+      "id": "META-QRY-00067",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeRestApiNccer",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.dataSource WHERE upper(dataSourceType) = 'REST API' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "REST API"
+      ],
+      "id": "META-QRY-00068",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeRestApiNccer_serverless",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.dataSource WHERE upper(dataSourceType) = 'REST API' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "REST API"
+      ],
+      "id": "META-QRY-00069",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeRestApiPbi",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'REST API' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELECT...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "REST API"
+      ],
+      "id": "META-QRY-00070",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[6]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeRestApiPbiArchive",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.dataSource WHERE upper(dataSourceType) = 'REST API' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "REST API"
+      ],
+      "id": "META-QRY-00071",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeRestApiPbi_serverless",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'REST API' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELECT...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "REST API"
+      ],
+      "id": "META-QRY-00072",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeRestApiProcore",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.dataSource WHERE upper(dataSourceType) = 'REST API' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "REST API"
+      ],
+      "id": "META-QRY-00073",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeRestApiScheduleValidator",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'REST API' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELECT...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "REST API"
+      ],
+      "id": "META-QRY-00074",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeRestApiScheduleValidator_serverless",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'REST API' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELECT...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "REST API"
+      ],
+      "id": "META-QRY-00075",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeRestApiTeamBinder",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'REST API' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELECT...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "REST API"
+      ],
+      "id": "META-QRY-00076",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeRestApiTexura",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'REST API' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELECT...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "REST API"
+      ],
+      "id": "META-QRY-00077",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeRestApiTradetapp",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.dataSource WHERE upper(dataSourceType) = 'REST API' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "REST API"
+      ],
+      "id": "META-QRY-00078",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeRestApiTradetapp_serverless",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.dataSource WHERE upper(dataSourceType) = 'REST API' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "REST API"
+      ],
+      "id": "META-QRY-00079",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeRestApiVairkko",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.dataSource WHERE upper(dataSourceType) = 'REST API' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "REST API"
+      ],
+      "id": "META-QRY-00080",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeRestApiVairkko_serverless",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.dataSource WHERE upper(dataSourceType) = 'REST API' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "REST API"
+      ],
+      "id": "META-QRY-00081",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeRestApiVisionLink",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'REST API' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELECT...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "SFTP File"
+      ],
+      "id": "META-QRY-00082",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeSecureFileSystemClueAll",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'SFTP File' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELECT...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "File System"
+      ],
+      "id": "META-QRY-00083",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeSecureFileSystemVRM",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'File System' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELE...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "File System"
+      ],
+      "id": "META-QRY-00084",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeSecureFileSystemVRM_serverless",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'File System' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELE...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Operational metrics lookup",
+      "data_source_types": [],
+      "id": "META-QRY-00085",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/activities[11]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.operationMetricLog"
+      ],
+      "pipeline": "plSourceToBronzeSecureFileSystemVRM_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@concat('select operationMetricLogId as metricLogId, copyActivityRowsRead as rowsRead, deltaTableUpsertNumberSourceRows as numSourceRows, deltaTableUpsertNumberTargetRowsInserted as targetRowsInserted, deltaTableUpsertNumberTargetRowsUpdated as targetRowsUpdated, deltaTableInsertNumberOutputRows as numOutputRows from [adf].[operationMetricLog] where operationMetricLogId = ', variables('MetricLogId'), ';')",
+      "tables": [
+        "adf.operationMetricLog"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "SFTP File"
+      ],
+      "id": "META-QRY-00086",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeSecureFileSystemzipcode",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'SFTP File' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELECT...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "SFTP File"
+      ],
+      "id": "META-QRY-00087",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeSecureFileSystemzipcode_serverless",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'SFTP File' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELECT...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Operational metrics lookup",
+      "data_source_types": [],
+      "id": "META-QRY-00088",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/activities[11]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.operationMetricLog"
+      ],
+      "pipeline": "plSourceToBronzeSecureFileSystemzipcode_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@concat('select operationMetricLogId as metricLogId, copyActivityRowsRead as rowsRead, deltaTableUpsertNumberSourceRows as numSourceRows, deltaTableUpsertNumberTargetRowsInserted as targetRowsInserted, deltaTableUpsertNumberTargetRowsUpdated as targetRowsUpdated, deltaTableInsertNumberOutputRows as numOutputRows from [adf].[operationMetricLog] where operationMetricLogId = ', variables('MetricLogId'), ';')",
+      "tables": [
+        "adf.operationMetricLog"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "sharepoint list"
+      ],
+      "id": "META-QRY-00089",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeSharepoint",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'sharepoint list' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "sharepoint list"
+      ],
+      "id": "META-QRY-00090",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeSharepoint_serverless",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'sharepoint list' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Operational metrics lookup",
+      "data_source_types": [],
+      "id": "META-QRY-00091",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/activities[9]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.operationMetricLog"
+      ],
+      "pipeline": "plSourceToBronzeSharepoint_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@concat('select operationMetricLogId,deltaTableInsertNumberOutputRows, copyActivityRowsRead from [adf].[operationMetricLog] where operationMetricLogId = ', variables('MetricLogId'), ';')",
+      "tables": [
+        "adf.operationMetricLog"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "SOAP API"
+      ],
+      "id": "META-QRY-00092",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeSoapApiB2G",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.dataSource WHERE upper(dataSourceType) = 'SOAP API' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "SOAP API"
+      ],
+      "id": "META-QRY-00093",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeSoapApiB2G_serverless",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.dataSource WHERE upper(dataSourceType) = 'SOAP API' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "sql server"
+      ],
+      "id": "META-QRY-00094",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeSql",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'sql server' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELEC...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00095",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "sourceQuery"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[6]/typeProperties/ifFalseActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeSql",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName))",
+      "tables": []
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00096",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "sourceQuery"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[6]/typeProperties/ifTrueActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeSql",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName))",
+      "tables": []
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "sql server"
+      ],
+      "id": "META-QRY-00097",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeSqlConcur",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'sql server' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELEC...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00098",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "sourceQuery"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[6]/typeProperties/ifFalseActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeSqlConcur",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName))",
+      "tables": []
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00099",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "sourceQuery",
+        "watermarkColumn",
+        "watermarkValue"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[6]/typeProperties/ifTrueActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeSqlConcur",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName), ' WHERE ', item().watermarkColumn, ' >= ', item().watermarkValue, '')",
+      "tables": []
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "sql server"
+      ],
+      "id": "META-QRY-00100",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeSqlCosential",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'sql server' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELEC...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00101",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[6]/typeProperties/ifFalseActivities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeSqlCosential",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@concat(' DECLARE @s VARCHAR(MAX) DECLARE @tablename VARCHAR(500) = ''',item().objectName,''' DECLARE @schemaname VARCHAR(500) = ''',item().objectSchema,''' SELECT @s = ISNULL(@s + '', '','''') + ''['' + c.name + '']'' + '' as ''+ ''['' + REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(c.name,'' '',''_''), ''&'',''and''), '' '',''_''), ''-'',''_''), '':'',''_''), '','',''''), ''{'',''_''), ''}'',''_''), ''('',''_''), '')'',''_''), ''\"'',''_'') + '']'' F...",
+      "tables": [
+        "dbo",
+        "sys.all_columns",
+        "sys.schemas",
+        "sys.views"
+      ]
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00102",
+      "is_expression": true,
+      "item_fields": [
+        "watermarkColumn",
+        "watermarkValue"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[6]/typeProperties/ifTrueActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeSqlCosential",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@concat(activity('Remove special characters in column names incremental').output.firstRow.Query, ' WHERE ''', item().watermarkColumn, ''', >= ', item().watermarkValue, '')",
+      "tables": []
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00103",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[6]/typeProperties/ifTrueActivities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeSqlCosential",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@concat(' DECLARE @s VARCHAR(MAX) DECLARE @tablename VARCHAR(500) = ''',item().objectName,''' DECLARE @schemaname VARCHAR(500) = ''',item().objectSchema,''' SELECT @s = ISNULL(@s + '', '','''') + ''['' + c.name + '']'' + '' as ''+ ''['' + REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(c.name,'' '',''_''), ''&'',''and''), '' '',''_''), ''-'',''_''), '':'',''_''), '','',''''), ''{'',''_''), ''}'',''_''), ''('',''_''), '')'',''_''), ''\"'',''_'') + '']'' F...",
+      "tables": [
+        "dbo",
+        "sys.all_columns",
+        "sys.schemas",
+        "sys.views"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "sql server"
+      ],
+      "id": "META-QRY-00104",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeSqlCosential_serverless",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'sql server' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELEC...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00105",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[5]/typeProperties/ifFalseActivities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeSqlCosential_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@concat(' DECLARE @s VARCHAR(MAX) DECLARE @tablename VARCHAR(500) = ''',item().objectName,''' DECLARE @schemaname VARCHAR(500) = ''',item().objectSchema,''' SELECT @s = ISNULL(@s + '', '','''') + ''['' + c.name + '']'' + '' as ''+ ''['' + REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(c.name,'' '',''_''), ''&'',''and''), '' '',''_''), ''-'',''_''), '':'',''_''), '','',''''), ''{'',''_''), ''}'',''_''), ''('',''_''), '')'',''_''), ''\"'',''_'') + '']'' F...",
+      "tables": [
+        "dbo",
+        "sys.all_columns",
+        "sys.schemas",
+        "sys.views"
+      ]
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00106",
+      "is_expression": true,
+      "item_fields": [
+        "watermarkColumn",
+        "watermarkValue"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[5]/typeProperties/ifTrueActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeSqlCosential_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@concat(activity('Remove special characters in column names incremental').output.firstRow.Query, ' WHERE ''', item().watermarkColumn, ''', >= ', item().watermarkValue, '')",
+      "tables": []
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00107",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[5]/typeProperties/ifTrueActivities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeSqlCosential_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@concat(' DECLARE @s VARCHAR(MAX) DECLARE @tablename VARCHAR(500) = ''',item().objectName,''' DECLARE @schemaname VARCHAR(500) = ''',item().objectSchema,''' SELECT @s = ISNULL(@s + '', '','''') + ''['' + c.name + '']'' + '' as ''+ ''['' + REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(c.name,'' '',''_''), ''&'',''and''), '' '',''_''), ''-'',''_''), '':'',''_''), '','',''''), ''{'',''_''), ''}'',''_''), ''('',''_''), '')'',''_''), ''\"'',''_'') + '']'' F...",
+      "tables": [
+        "dbo",
+        "sys.all_columns",
+        "sys.schemas",
+        "sys.views"
+      ]
+    },
+    {
+      "category": "Operational metrics lookup",
+      "data_source_types": [],
+      "id": "META-QRY-00108",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/activities[8]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.operationMetricLog"
+      ],
+      "pipeline": "plSourceToBronzeSqlCosential_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@concat('select operationMetricLogId as metricLogId, copyActivityRowsRead as rowsRead, deltaTableUpsertNumberSourceRows as numSourceRows, deltaTableUpsertNumberTargetRowsInserted as targetRowsInserted, deltaTableUpsertNumberTargetRowsUpdated as targetRowsUpdated, deltaTableInsertNumberOutputRows as numOutputRows from [adf].[operationMetricLog] where operationMetricLogId = ', variables('MetricLogId'), ';')",
+      "tables": [
+        "adf.operationMetricLog"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "sql server"
+      ],
+      "id": "META-QRY-00109",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeSqlDEstimator",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'sql server' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELEC...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00110",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "sourceQuery"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[6]/typeProperties/ifFalseActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeSqlDEstimator",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName))",
+      "tables": []
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00111",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "sourceQuery",
+        "watermarkColumn",
+        "watermarkValue"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[6]/typeProperties/ifTrueActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeSqlDEstimator",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName), ' WHERE ', item().watermarkColumn, ' >= ', item().watermarkValue, '')",
+      "tables": []
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "sql server"
+      ],
+      "id": "META-QRY-00112",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeSqlDEstimator_serverless",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'sql server' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELEC...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00113",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "sourceQuery"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[5]/typeProperties/ifFalseActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeSqlDEstimator_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName))",
+      "tables": []
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00114",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "sourceQuery",
+        "watermarkColumn",
+        "watermarkValue"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[5]/typeProperties/ifTrueActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeSqlDEstimator_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName), ' WHERE ', item().watermarkColumn, ' >= ', item().watermarkValue, '')",
+      "tables": []
+    },
+    {
+      "category": "Operational metrics lookup",
+      "data_source_types": [],
+      "id": "META-QRY-00115",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/activities[8]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.operationMetricLog"
+      ],
+      "pipeline": "plSourceToBronzeSqlDEstimator_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@concat('select operationMetricLogId as metricLogId, copyActivityRowsRead as rowsRead, deltaTableUpsertNumberSourceRows as numSourceRows, deltaTableUpsertNumberTargetRowsInserted as targetRowsInserted, deltaTableUpsertNumberTargetRowsUpdated as targetRowsUpdated, deltaTableInsertNumberOutputRows as numOutputRows from [adf].[operationMetricLog] where operationMetricLogId = ', variables('MetricLogId'), ';')",
+      "tables": [
+        "adf.operationMetricLog"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "sql server"
+      ],
+      "id": "META-QRY-00116",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeSqlE1",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'sql server' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELEC...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00117",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "sourceQuery"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[6]/typeProperties/ifFalseActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeSqlE1",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@replace(replace(coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName)) , 'PRODDTA.', concat(variables('objectSchema'), 'DTA.')) , 'PRODCTL.', concat(variables('objectSchema'), 'CTL.'))",
+      "tables": []
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00118",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "sourceQuery"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[6]/typeProperties/ifTrueActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeSqlE1",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@replace(replace(coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName)) , 'PRODDTA.', concat(variables('objectSchema'), 'DTA.')) , 'PRODCTL.', concat(variables('objectSchema'), 'CTL.'))",
+      "tables": []
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "sql server"
+      ],
+      "id": "META-QRY-00119",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeSqlE1_serverless",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'sql server' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELEC...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00120",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "sourceQuery"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[5]/typeProperties/ifFalseActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeSqlE1_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@replace(replace(coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName)) , 'PRODDTA.', concat(variables('objectSchema'), 'DTA.')) , 'PRODCTL.', concat(variables('objectSchema'), 'CTL.'))",
+      "tables": []
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00121",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "sourceQuery"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[5]/typeProperties/ifTrueActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeSqlE1_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@replace(replace(coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName)) , 'PRODDTA.', concat(variables('objectSchema'), 'DTA.')) , 'PRODCTL.', concat(variables('objectSchema'), 'CTL.'))",
+      "tables": []
+    },
+    {
+      "category": "Operational metrics lookup",
+      "data_source_types": [],
+      "id": "META-QRY-00122",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/activities[8]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.operationMetricLog"
+      ],
+      "pipeline": "plSourceToBronzeSqlE1_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@concat('select operationMetricLogId as metricLogId, copyActivityRowsRead as rowsRead, deltaTableUpsertNumberSourceRows as numSourceRows, deltaTableUpsertNumberTargetRowsInserted as targetRowsInserted, deltaTableUpsertNumberTargetRowsUpdated as targetRowsUpdated, deltaTableInsertNumberOutputRows as numOutputRows from [adf].[operationMetricLog] where operationMetricLogId = ', variables('MetricLogId'), ';')",
+      "tables": [
+        "adf.operationMetricLog"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "sql server"
+      ],
+      "id": "META-QRY-00123",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeSqlIneightDocument",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'sql server' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELEC...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00124",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "sourceQuery"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[6]/typeProperties/ifFalseActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeSqlIneightDocument",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName))",
+      "tables": []
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00125",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "sourceQuery",
+        "watermarkColumn",
+        "watermarkValue"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[6]/typeProperties/ifTrueActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeSqlIneightDocument",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName), ' WHERE ', item().watermarkColumn, ' >= ', item().watermarkValue, '')",
+      "tables": []
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "sql server"
+      ],
+      "id": "META-QRY-00126",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeSqlIneightDocument_serverless",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'sql server' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELEC...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00127",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "sourceQuery"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[5]/typeProperties/ifFalseActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeSqlIneightDocument_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName))",
+      "tables": []
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00128",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "sourceQuery",
+        "watermarkColumn",
+        "watermarkValue"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[5]/typeProperties/ifTrueActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeSqlIneightDocument_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName), ' WHERE ', item().watermarkColumn, ' >= ', item().watermarkValue, '')",
+      "tables": []
+    },
+    {
+      "category": "Operational metrics lookup",
+      "data_source_types": [],
+      "id": "META-QRY-00129",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/activities[8]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.operationMetricLog"
+      ],
+      "pipeline": "plSourceToBronzeSqlIneightDocument_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@concat('select operationMetricLogId as metricLogId, copyActivityRowsRead as rowsRead, deltaTableUpsertNumberSourceRows as numSourceRows, deltaTableUpsertNumberTargetRowsInserted as targetRowsInserted, deltaTableUpsertNumberTargetRowsUpdated as targetRowsUpdated, deltaTableInsertNumberOutputRows as numOutputRows from [adf].[operationMetricLog] where operationMetricLogId = ', variables('MetricLogId'), ';')",
+      "tables": [
+        "adf.operationMetricLog"
+      ]
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "sql server"
+      ],
+      "id": "META-QRY-00130",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeSqlIneightEstimate",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'sql server' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELEC...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00131",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "sourceQuery"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[6]/typeProperties/ifFalseActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeSqlIneightEstimate",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName))",
+      "tables": []
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00132",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "sourceQuery"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[6]/typeProperties/ifTrueActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeSqlIneightEstimate",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName))",
+      "tables": []
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "sql server"
+      ],
+      "id": "META-QRY-00133",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeSql_Referencedb",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'sql server' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELEC...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00134",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "sourceQuery"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[6]/typeProperties/ifFalseActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeSql_Referencedb",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName))",
+      "tables": []
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00135",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "sourceQuery"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[6]/typeProperties/ifTrueActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeSql_Referencedb",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName))",
+      "tables": []
+    },
+    {
+      "category": "Source metadata lookup",
+      "data_source_types": [
+        "sql server"
+      ],
+      "id": "META-QRY-00136",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.DataSource"
+      ],
+      "pipeline": "plSourceToBronzeSql_serverless",
+      "pipeline_parameters": [
+        "batchGroup",
+        "dataSourceName",
+        "objectName",
+        "objectSchema"
+      ],
+      "property_name": "sqlReaderQuery",
+      "query_text": "SELECT * FROM adf.DataSource WHERE dataSourceType = 'sql server' AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ','))) AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ','))) AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELEC...",
+      "tables": [
+        "STRING_SPLIT",
+        "adf.DataSource"
+      ]
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00137",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "sourceQuery"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[5]/typeProperties/ifFalseActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeSql_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName))",
+      "tables": []
+    },
+    {
+      "category": "Per-object runtime query",
+      "data_source_types": [],
+      "id": "META-QRY-00138",
+      "is_expression": true,
+      "item_fields": [
+        "objectName",
+        "objectSchema",
+        "sourceQuery"
+      ],
+      "json_path": "properties/activities[2]/typeProperties/activities[5]/typeProperties/ifTrueActivities[0]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [],
+      "pipeline": "plSourceToBronzeSql_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@coalesce(item().sourceQuery, concat('SELECT * FROM ', item().objectSchema, '.', item().objectName))",
+      "tables": []
+    },
+    {
+      "category": "Operational metrics lookup",
+      "data_source_types": [],
+      "id": "META-QRY-00139",
+      "is_expression": true,
+      "item_fields": [],
+      "json_path": "properties/activities[2]/typeProperties/activities[8]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.operationMetricLog"
+      ],
+      "pipeline": "plSourceToBronzeSql_serverless",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "@concat('select operationMetricLogId as metricLogId, copyActivityRowsRead as rowsRead, deltaTableUpsertNumberSourceRows as numSourceRows, deltaTableUpsertNumberTargetRowsInserted as targetRowsInserted, deltaTableUpsertNumberTargetRowsUpdated as targetRowsUpdated, deltaTableInsertNumberOutputRows as numOutputRows from [adf].[operationMetricLog] where operationMetricLogId = ', variables('MetricLogId'), ';')",
+      "tables": [
+        "adf.operationMetricLog"
+      ]
+    },
+    {
+      "category": "Other metadata query",
+      "data_source_types": [],
+      "id": "META-QRY-00140",
+      "is_expression": false,
+      "item_fields": [],
+      "json_path": "properties/activities[1]/typeProperties/source/sqlReaderQuery",
+      "metadata_tables": [
+        "adf.powerBiDataset"
+      ],
+      "pipeline": "plUpdateDatasetId",
+      "pipeline_parameters": [],
+      "property_name": "sqlReaderQuery",
+      "query_text": "/****** Create table if not exists *****/ IF OBJECT_ID(N'[adf].[PowerBiDataset]', 'U') IS NULL BEGIN CREATE TABLE adf.PowerBiDataset ( workspaceName VARCHAR(255), workspaceId VARCHAR(255), datasetName VARCHAR(255), datasetId VARCHAR(255), isWebAppDataset bit, isEffectiveIdentityRolesRequired bit, lastModifiedTimestamp [datetime2](7) ) END; /****** Script used to upsert records from the temp table *****/ MERGE adf.PowerBiDataset AS TARGET USING adf.PowerBiDatasetStaging AS SOURCE ON (CAST(TARG...",
+      "tables": [
+        "SET",
+        "adf.powerBiDataset",
+        "existing",
+        "the"
+      ]
+    }
+  ],
+  "query_categories": {
+    "Azure resource lookup": 11,
+    "Operational metrics lookup": 14,
+    "Other metadata query": 3,
+    "Per-object runtime query": 48,
+    "Process dependency lookup": 1,
+    "Process metadata lookup": 1,
+    "Source metadata lookup": 62
+  }
+}

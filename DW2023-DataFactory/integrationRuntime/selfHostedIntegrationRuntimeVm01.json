@@ -1,0 +1,7 @@
+{
+	"name": "selfHostedIntegrationRuntimeVm01",
+	"properties": {
+		"type": "SelfHosted",
+		"description": "Self-hosted integration runtime\nVirtual Machine details: TEMADFDEV02 10.10.12.30"
+	}
+}

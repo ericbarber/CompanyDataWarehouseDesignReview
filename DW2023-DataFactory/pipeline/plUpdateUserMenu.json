@@ -1,0 +1,644 @@
+{
+	"name": "plUpdateUserMenu",
+	"properties": {
+		"description": "pipeline used to update the user menu table in the ASQL database used by the web app",
+		"activities": [
+			{
+				"name": "insert to temp table",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "log pipeline start",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"wildcardFolderPath": "user_menu_export",
+							"wildcardFileName": "*.parquet",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "ParquetReadSettings"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"preCopyScript": "DROP TABLE IF EXISTS \ndbo.UserMenuStaging",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "workspace_id",
+									"physicalType": "UTF8"
+								},
+								"sink": {
+									"name": "WorkspaceID",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "workspace_name"
+								},
+								"sink": {
+									"name": "WorkspaceName"
+								}
+							},
+							{
+								"source": {
+									"name": "report_id"
+								},
+								"sink": {
+									"name": "ReportID"
+								}
+							},
+							{
+								"source": {
+									"name": "report_name"
+								},
+								"sink": {
+									"name": "ReportName"
+								}
+							},
+							{
+								"source": {
+									"name": "email"
+								},
+								"sink": {
+									"name": "Email",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "project_number"
+								},
+								"sink": {
+									"name": "ProjectNumber",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "is_override"
+								},
+								"sink": {
+									"name": "IsOverride"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "dsAdlsManagedIdentityParquet",
+						"type": "DatasetReference",
+						"parameters": {
+							"containerName": "adf-staging",
+							"folderPath": "user_menu_export",
+							"fileName": "*.parquet"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "dsAsqlSqlAuthSdatWebApp",
+						"type": "DatasetReference",
+						"parameters": {
+							"schemaName": "dbo",
+							"tableName": "UserMenuStaging"
+						}
+					}
+				]
+			},
+			{
+				"name": "upsert UserMenu records",
+				"description": "execute the stored procedure to merge records from the temp table into the target table",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "insert to temp table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "/****** Script used to upsert records from the temp table *****/\nMERGE dbo.UserMenu AS TARGET\n    USING dbo.UserMenuStaging  AS SOURCE\n    ON (\n\t\tTARGET.Email = SOURCE.Email\n\t\tAND TARGET.WorkspaceID = SOURCE.WorkspaceID\n\t\tAND TARGET.ReportID = SOURCE.ReportID\n\t\tAND TARGET.ProjectNumber = SOURCE.ProjectNumber\n        AND target.IsOverride = 1\n        AND source.IsOverride = 1\n)\n    WHEN MATCHED\n\t--update existing values\n    THEN UPDATE\n         SET \n           TARGET.Email = SOURCE.Email,\n\t\t   TARGET.WorkspaceID = SOURCE.WorkspaceID,\n\t\t   TARGET.ReportID = SOURCE.ReportID,\n\t\t   TARGET.ProjectNumber = SOURCE.ProjectNumber,\n           TARGET.isOverride = SOURCE.isOverride\n\t--insert new values\n    WHEN NOT MATCHED BY TARGET\n    THEN INSERT (Email, WorkspaceID, ReportID, ProjectNumber,IsOverride)         \n         VALUES (\n\t\t SOURCE.Email\n\t\t,SOURCE.WorkspaceID\n\t\t,SOURCE.ReportID\n\t\t,SOURCE.ProjectNumber\n        ,SOURCE.isOverride);\n\n-- select values so lookup activity doesnt fail\nSELECT COUNT(*) FROM dbo.UserMenu WHERE IsOverride = 1",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "dsAsqlSqlAuthSdatWebApp",
+						"type": "DatasetReference",
+						"parameters": {
+							"schemaName": "dbo",
+							"tableName": "UserMenuStaging"
+						}
+					}
+				}
+			},
+			{
+				"name": "log pipeline start",
+				"description": "log pipeline start",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:05:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[adf].[uspLogExecutionMessage]",
+					"storedProcedureParameters": {
+						"dataSourceId": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"dataProcessId": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"executionLogSubject": {
+							"value": {
+								"value": "Start of pipeline: @{pipeline().Pipeline}",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"executionLogMessage": {
+							"value": "STARTING: Starting execution of the pipeline",
+							"type": "String"
+						},
+						"dataFactoryName": {
+							"value": {
+								"value": "@pipeline().DataFactory",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineName": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineRunID": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerID": {
+							"value": {
+								"value": "@pipeline().TriggerId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerName": {
+							"value": {
+								"value": "@pipeline().TriggerName",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerTimestamp": {
+							"value": {
+								"value": "@pipeline().TriggerTime",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"PipelineTriggerType": {
+							"value": {
+								"value": "@pipeline().TriggerType",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"executionTimestamp": {
+							"value": {
+								"value": "@utcnow('yyyy-MM-dd HH:mm:ss')",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"isStart": {
+							"value": "true",
+							"type": "Boolean"
+						},
+						"isEnd": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isError": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isInnerActivity": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isIncremental": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Boolean"
+						},
+						"objectName": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"objectSchema": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "lsAsqlManagedIdentity",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"connectionString": "sec-metadata-db-connection-string"
+					}
+				}
+			},
+			{
+				"name": "log pipeline end",
+				"description": "log pipeline end",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "delete UserMenu records",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:05:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[adf].[uspLogExecutionMessage]",
+					"storedProcedureParameters": {
+						"dataSourceId": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"dataProcessId": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"executionLogSubject": {
+							"value": {
+								"value": "End of pipeline: @{pipeline().Pipeline}",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"executionLogMessage": {
+							"value": "This is the end of the pipeline",
+							"type": "String"
+						},
+						"dataFactoryName": {
+							"value": {
+								"value": "@pipeline().DataFactory",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineName": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineRunID": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerID": {
+							"value": {
+								"value": "@pipeline().TriggerId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerName": {
+							"value": {
+								"value": "@pipeline().TriggerName",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerTimestamp": {
+							"value": {
+								"value": "@pipeline().TriggerTime",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"pipelineTriggerType": {
+							"value": {
+								"value": "@pipeline().TriggerType",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"executionTimestamp": {
+							"value": {
+								"value": "@utcnow('yyyy-MM-dd HH:mm:ss')",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"isStart": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isEnd": {
+							"value": "true",
+							"type": "Boolean"
+						},
+						"isError": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isInnerActivity": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isIncremental": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Boolean"
+						},
+						"objectName": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"objectSchema": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "lsAsqlManagedIdentity",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"connectionString": "sec-metadata-db-connection-string"
+					}
+				}
+			},
+			{
+				"name": "error notification 2",
+				"description": "log error and notify users if notifications are enabled",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "insert to temp table",
+						"dependencyConditions": [
+							"Failed"
+						]
+					},
+					{
+						"activity": "upsert UserMenu records",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plLogMsgAndSendEmail",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"metadataConnectionString": "sec-metadata-db-connection-string",
+						"emailEnabled": "tru",
+						"emailNotificationSendToAddress": {
+							"value": "@pipeline().parameters.emailNotificationSendToAddress",
+							"type": "Expression"
+						},
+						"emailImportance": "High",
+						"emailSubject": {
+							"value": "FAILURE: Error during pipeline: @{pipeline().Pipeline}",
+							"type": "Expression"
+						},
+						"emailMessage": {
+							"value": "There was an error during the activity of the pipeline @{pipeline().Pipeline}",
+							"type": "Expression"
+						},
+						"emailColor": "Red",
+						"executionLogSubject": {
+							"value": "Error during pipeline: @{pipeline().Pipeline}",
+							"type": "Expression"
+						},
+						"executionLogMessage": {
+							"value": "There was an error during the activity of the pipeline @{pipeline().Pipeline}",
+							"type": "Expression"
+						},
+						"dataFactoryName": {
+							"value": "@pipeline().DataFactory",
+							"type": "Expression"
+						},
+						"pipelineName": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"pipelineRunID": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"pipelineTriggerID": {
+							"value": "@pipeline().TriggerId",
+							"type": "Expression"
+						},
+						"pipelineTriggerName": {
+							"value": "@pipeline().TriggerName",
+							"type": "Expression"
+						},
+						"pipelineTriggerTimestamp": {
+							"value": "@pipeline().TriggerTime",
+							"type": "Expression"
+						},
+						"pipelineTriggerType": {
+							"value": "@pipeline().TriggerType",
+							"type": "Expression"
+						},
+						"executionTimestamp": {
+							"value": "@{utcnow('yyyy-MM-dd HH:mm:ss')}",
+							"type": "Expression"
+						},
+						"isStart": "false",
+						"isEnd": "false",
+						"isError": "true",
+						"isInnerActivity": "false",
+						"isIncremental": "false",
+						"objectName": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						},
+						"objectSchema": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						},
+						"dataSourceId": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						},
+						"dataProcessId": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "delete UserMenu records",
+				"description": "delete usermenu records where the override no longer exists",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "upsert UserMenu records",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 1,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "/****** Script used to delete records from dbo.UserMenu table *****/\n\nBEGIN TRANSACTION\n\nDELETE FROM dbo.UserMenu\nWHERE dbo.UserMenu.isOverride = 1\nAND  NOT EXISTS (\n    SELECT 1\n    FROM dbo.UserMenuStaging as source\n    WHERE \n\t\t    dbo.UserMenu.Email = SOURCE.Email\n\t\t\tAND dbo.UserMenu.WorkspaceID = SOURCE.WorkspaceID\n\t\t\tAND dbo.UserMenu.ReportID = SOURCE.ReportID\n            AND SOURCE.isOverride = 1\n\t\t\tAND dbo.UserMenu.IsOverride = 1\n);\n\nCOMMIT TRANSACTION;\n\n-- drop temp table\nDROP TABLE IF EXISTS dbo.UserMenuStaging\n\n-- return results so lookup doesn't fail\nSELECT COUNT(*) FROM dbo.UserMenu",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "dsAsqlSqlAuthSdatWebApp",
+						"type": "DatasetReference",
+						"parameters": {
+							"schemaName": "dbo",
+							"tableName": "UserMenuStaging"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"emailEnabled": {
+				"type": "string"
+			},
+			"emailNotificationSendToAddress": {
+				"type": "string"
+			},
+			"dataSourceName": {
+				"type": "string",
+				"defaultValue": "webapp"
+			}
+		},
+		"variables": {
+			"metadataConnectionString": {
+				"type": "String",
+				"defaultValue": "sec-metadata-db-connection-string"
+			}
+		},
+		"folder": {
+			"name": "002_webAppIntegration/IndividualWebAppTables"
+		},
+		"annotations": []
+	}
+}

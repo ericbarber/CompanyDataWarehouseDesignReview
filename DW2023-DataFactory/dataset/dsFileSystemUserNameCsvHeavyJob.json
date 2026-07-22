@@ -1,0 +1,57 @@
+{
+	"name": "dsFileSystemUserNameCsvHeavyJob",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lsFileSystemUserName",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"host": {
+					"value": "@dataset().host",
+					"type": "Expression"
+				},
+				"userName": {
+					"value": "@dataset().userName",
+					"type": "Expression"
+				},
+				"connectionSecretName": {
+					"value": "@dataset().connectionSecretName",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"host": {
+				"type": "string",
+				"defaultValue": "\\\\temrdshj01\\SCRDR_Export"
+			},
+			"userName": {
+				"type": "string",
+				"defaultValue": "sundt\\da-dev-scrdr"
+			},
+			"connectionSecretName": {
+				"type": "string",
+				"defaultValue": "sec-heavyjob-scrdr-export-user"
+			},
+			"directory": {
+				"type": "string",
+				"defaultValue": "heavyjob_csv"
+			}
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "FileServerLocation",
+				"folderPath": {
+					"value": "@dataset().directory",
+					"type": "Expression"
+				}
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}

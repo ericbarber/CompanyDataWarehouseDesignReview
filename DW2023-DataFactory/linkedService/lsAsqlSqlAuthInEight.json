@@ -1,0 +1,31 @@
+{
+	"name": "lsAsqlSqlAuthInEight",
+	"properties": {
+		"description": "Linked service used to connect o InEight replicate. Has to use the self-hosted runtime because only certain IP address' are whitelisted on their database",
+		"parameters": {
+			"connectionSecretName": {
+				"type": "string",
+				"defaultValue": "sec-ineight-db-connection-string"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"connectionString": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "lsKeyVaultManagedIdentity",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": {
+					"value": "@linkedService().connectionSecretName",
+					"type": "Expression"
+				}
+			}
+		},
+		"connectVia": {
+			"referenceName": "selfHostedIntegrationRuntimeVm01",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

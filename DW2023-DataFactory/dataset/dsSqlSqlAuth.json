@@ -1,0 +1,41 @@
+{
+	"name": "dsSqlSqlAuth",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lsSqlSqlAuth",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"connectionString": {
+					"value": "@dataset().connectionString",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"connectionString": {
+				"type": "string",
+				"defaultValue": "sec-e1-connection-string"
+			},
+			"schema": {
+				"type": "string"
+			},
+			"tableName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().schema",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().tableName",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,11 @@
+{
+	"name": "lsKeyVaultManagedIdentitySdat",
+	"properties": {
+		"description": "SDAT key vault for the web app",
+		"annotations": [],
+		"type": "AzureKeyVault",
+		"typeProperties": {
+			"baseUrl": "https://kv-sdat-dev-sdt.vault.azure.net/"
+		}
+	}
+}

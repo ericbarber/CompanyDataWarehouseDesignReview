@@ -1,0 +1,9 @@
+{
+	"name": "adf-dw2023-dev-sdt",
+	"location": "westus3",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "6e551078-aff8-46d9-abb3-67bc81c4db3f",
+		"tenantId": "0a53a6aa-2634-48e0-925d-380ca1cd7811"
+	}
+}

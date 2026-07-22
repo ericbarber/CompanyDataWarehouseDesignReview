@@ -1,0 +1,20 @@
+{
+	"name": "dsHttpsBinaryVRM",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lsHttpServerVRM",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "HttpServerLocation",
+				"relativeUrl": {
+					"value": "@concat('/client_transfers/sundt/Sundt FTP Report_', formatDateTime(variables('localTimestamp'), 'yyyy_MM_dd'), '.xlsx')",
+					"type": "Expression"
+				}
+			}
+		}
+	}
+}

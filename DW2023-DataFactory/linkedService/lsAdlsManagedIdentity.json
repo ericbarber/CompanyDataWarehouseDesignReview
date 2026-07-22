@@ -1,0 +1,16 @@
+{
+	"name": "lsAdlsManagedIdentity",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "Azure Data Lake Storage Gen2 linked service connection. Please note, Azure BLOB storage uses a different linked service",
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://sadlsdw2023devsdt.dfs.core.windows.net"
+		},
+		"connectVia": {
+			"referenceName": "AutoResolveIntegrationRuntime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

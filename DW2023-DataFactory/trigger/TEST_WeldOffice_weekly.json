@@ -1,0 +1,39 @@
+{
+	"name": "TEST_WeldOffice_weekly",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "plSourceToGoldWeldOffice",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"isEmailNotificationEnabled": "true",
+					"emailNotificationSendToAddress": "Azure-DataWarehouse-Alerts@sundt.com"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 15,
+				"startTime": "2025-10-17T21:50:00",
+				"timeZone": "US Mountain Standard Time",
+				"schedule": {
+					"minutes": [
+						0
+					],
+					"hours": [
+						6
+					],
+					"weekDays": [
+						"Monday"
+					]
+				}
+			}
+		}
+	}
+}

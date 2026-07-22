@@ -1,0 +1,41 @@
+{
+	"name": "DEV_zip_monthly",
+	"properties": {
+		"description": "This trigger is customized for the zip codes & used to cslb.ca.gov",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "plSourceToSilverZipcodes",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"isEmailNotificationEnabled": "True",
+					"emailNotificationSendToAddress": "Azure-DataWarehouse-Alerts@sundt.com",
+					"batchGroup": "-"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Month",
+				"interval": 1,
+				"startTime": "2024-12-11T21:32:00",
+				"timeZone": "US Mountain Standard Time",
+				"schedule": {
+					"minutes": [
+						0
+					],
+					"hours": [
+						21
+					],
+					"monthDays": [
+						5
+					]
+				}
+			}
+		}
+	}
+}

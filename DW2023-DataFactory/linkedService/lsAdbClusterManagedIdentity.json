@@ -1,0 +1,19 @@
+{
+	"name": "lsAdbClusterManagedIdentity",
+	"properties": {
+		"description": "Azure Databricks Spark Cluster linked service connection",
+		"annotations": [],
+		"type": "AzureDatabricks",
+		"typeProperties": {
+			"domain": "https://adb-4725640684544100.0.azuredatabricks.net/?o=4725640684544100#",
+			"authentication": "MSI",
+			"workspaceResourceId": "/subscriptions/38256423-1d91-4c9d-a067-8b4226316604/resourceGroups/rg-dw2023-westus-dev/providers/Microsoft.Databricks/workspaces/dbw-dw2023-dev-sdt",
+			"existingClusterId": "0720-012626-pen66ygb"
+		},
+		"connectVia": {
+			"referenceName": "AutoResolveIntegrationRuntime",
+			"type": "IntegrationRuntimeReference"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/linkedservices"
+}

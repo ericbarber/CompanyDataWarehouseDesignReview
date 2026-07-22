@@ -1,0 +1,7 @@
+{
+	"name": "mpeAzureSql",
+	"properties": {
+		"privateLinkResourceId": "/subscriptions/38256423-1d91-4c9d-a067-8b4226316604/resourceGroups/rg-sdat-dev/providers/Microsoft.Sql/servers/sql-sdat-dev-sdt",
+		"groupId": "sqlServer"
+	}
+}

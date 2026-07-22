@@ -1,0 +1,409 @@
+{
+	"name": "plSourceToGoldBridgit_Reporting",
+	"properties": {
+		"activities": [
+			{
+				"name": "log pipeline start",
+				"description": "log pipeline start",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:05:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[adf].[uspLogExecutionMessage]",
+					"storedProcedureParameters": {
+						"dataSourceId": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"dataProcessId": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"executionLogSubject": {
+							"value": {
+								"value": "Start of pipeline: @{pipeline().Pipeline}",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"executionLogMessage": {
+							"value": "STARTING: Starting execution of the pipeline",
+							"type": "String"
+						},
+						"dataFactoryName": {
+							"value": {
+								"value": "@pipeline().DataFactory",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineName": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineRunID": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerID": {
+							"value": {
+								"value": "@pipeline().TriggerId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerName": {
+							"value": {
+								"value": "@pipeline().TriggerName",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerTimestamp": {
+							"value": {
+								"value": "@pipeline().TriggerTime",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"PipelineTriggerType": {
+							"value": {
+								"value": "@pipeline().TriggerType",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"executionTimestamp": {
+							"value": {
+								"value": "@utcnow('yyyy-MM-dd HH:mm:ss')",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"isStart": {
+							"value": "true",
+							"type": "Boolean"
+						},
+						"isEnd": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isError": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isInnerActivity": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isIncremental": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Boolean"
+						},
+						"objectName": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"objectSchema": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "lsAsqlManagedIdentity",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"connectionString": "sec-metadata-db-connection-string"
+					}
+				}
+			},
+			{
+				"name": "write to delta table",
+				"description": "runs notebook to convert parquet to delta  table",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "log pipeline start",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.01:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/data_engineering/100_raw_to_bronze/bridgit_reporting/raw_to_silver_bridgit_reporting_master",
+					"baseParameters": {
+						"objects": {
+							"value": "@pipeline().parameters.objectFilter",
+							"type": "Expression"
+						},
+						"phase": {
+							"value": "@pipeline().parameters.runPhase",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "lsAdbClusterManagedIdentity",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "error notification",
+				"description": "log error and notify users if notifications are enabled",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "write to delta table",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plLogMsgAndSendEmail",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"metadataConnectionString": "sec-metadata-db-connection-string",
+						"emailEnabled": {
+							"value": "@pipeline().parameters.isEmailNotificationEnabled",
+							"type": "Expression"
+						},
+						"emailNotificationSendToAddress": {
+							"value": "@pipeline().parameters.emailNotificationSendToAddress",
+							"type": "Expression"
+						},
+						"emailImportance": "High",
+						"emailSubject": {
+							"value": "Notebook Failure: @{pipeline().Pipeline}",
+							"type": "Expression"
+						},
+						"emailColor": "Red",
+						"executionLogSubject": {
+							"value": "End of inner activity for pipeline: @{pipeline().Pipeline}",
+							"type": "Expression"
+						},
+						"executionLogMessage": {
+							"value": "FAILURE: Notebook Failure: /data_engineering/Source2Raw/Source2RawIncrementalLoad\nError Code: @{activity('write to delta table').error.errorCode}\nMessage: @{activity('write to delta table').error.message}",
+							"type": "Expression"
+						},
+						"dataFactoryName": {
+							"value": "@pipeline().DataFactory",
+							"type": "Expression"
+						},
+						"pipelineName": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"pipelineRunID": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"pipelineTriggerID": {
+							"value": "@pipeline().TriggerId",
+							"type": "Expression"
+						},
+						"pipelineTriggerName": {
+							"value": "@pipeline().TriggerId",
+							"type": "Expression"
+						},
+						"pipelineTriggerTimestamp": {
+							"value": "@pipeline().TriggerTime",
+							"type": "Expression"
+						},
+						"pipelineTriggerType": {
+							"value": "@pipeline().TriggerType",
+							"type": "Expression"
+						},
+						"executionTimestamp": {
+							"value": "@utcnow('yyyy-MM-dd HH:mm:ss')",
+							"type": "Expression"
+						},
+						"isStart": "false",
+						"isEnd": "false",
+						"isError": "true",
+						"isInnerActivity": "true",
+						"isIncremental": "false",
+						"objectSchema": {
+							"value": "\"bridgit_reporting\"",
+							"type": "Expression"
+						},
+						"dataProcessId": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "success notification",
+				"description": "notify users ",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "write to delta table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plLogMsgAndSendEmail",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"metadataConnectionString": "sec-metadata-db-connection-string",
+						"emailEnabled": {
+							"value": "@pipeline().parameters.isEmailNotificationEnabled",
+							"type": "Expression"
+						},
+						"emailNotificationSendToAddress": {
+							"value": "@pipeline().parameters.emailNotificationSendToAddress",
+							"type": "Expression"
+						},
+						"emailImportance": "Low",
+						"emailSubject": {
+							"value": "SUCCESS: @{pipeline().Pipeline}",
+							"type": "Expression"
+						},
+						"emailMessage": {
+							"value": "The pipeline @{pipeline().Pipeline} finished successfully",
+							"type": "Expression"
+						},
+						"emailColor": "Green",
+						"executionLogSubject": {
+							"value": "Successful pipeline execution: @{pipeline().Pipeline}",
+							"type": "Expression"
+						},
+						"executionLogMessage": {
+							"value": "The pipeline @{pipeline().Pipeline} finished successfully",
+							"type": "Expression"
+						},
+						"dataFactoryName": {
+							"value": "@pipeline().DataFactory",
+							"type": "Expression"
+						},
+						"pipelineName": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"pipelineRunID": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"pipelineTriggerID": {
+							"value": "@pipeline().TriggerId",
+							"type": "Expression"
+						},
+						"pipelineTriggerName": {
+							"value": "@pipeline().TriggerName",
+							"type": "Expression"
+						},
+						"pipelineTriggerTimestamp": {
+							"value": "@pipeline().TriggerTime",
+							"type": "Expression"
+						},
+						"pipelineTriggerType": {
+							"value": "@pipeline().TriggerType",
+							"type": "Expression"
+						},
+						"executionTimestamp": {
+							"value": "@{utcnow('yyyyMMddTHH:mm:ss')}",
+							"type": "Expression"
+						},
+						"isStart": "false",
+						"isEnd": "true",
+						"isError": "false",
+						"isInnerActivity": "false",
+						"isIncremental": "false",
+						"objectName": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						},
+						"objectSchema": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"isEmailNotificationEnabled": {
+				"type": "string",
+				"defaultValue": "true"
+			},
+			"emailNotificationSendToAddress": {
+				"type": "string",
+				"defaultValue": "Azure-DataWarehouse-Alerts@sundt.com"
+			},
+			"batchGroup": {
+				"type": "string",
+				"defaultValue": "-"
+			},
+			"objectfilter": {
+				"type": "string",
+				"defaultValue": "all"
+			},
+			"runphase": {
+				"type": "string",
+				"defaultValue": "both"
+			}
+		},
+		"folder": {
+			"name": "003_orchestratorPipelines"
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-10-25T21:30:11Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

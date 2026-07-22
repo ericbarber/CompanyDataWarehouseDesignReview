@@ -1,0 +1,38 @@
+{
+	"name": "DEV_INEIGHT_AM",
+	"properties": {
+		"description": "First run of the day.",
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "plSourceToGoldIneight",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"isEmailNotificationEnabled": "true",
+					"emailNotificationSendToAddress": "Azure-DataWarehouse-Alerts@sundt.com",
+					"batchGroup": "conformed-001"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2025-10-22T00:00:00",
+				"timeZone": "US Mountain Standard Time",
+				"schedule": {
+					"minutes": [
+						0
+					],
+					"hours": [
+						7
+					]
+				}
+			}
+		}
+	}
+}

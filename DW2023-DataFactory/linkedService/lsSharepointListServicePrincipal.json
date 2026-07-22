@@ -1,0 +1,37 @@
+{
+	"name": "lsSharepointListServicePrincipal",
+	"properties": {
+		"parameters": {
+			"connectionSecretName": {
+				"type": "string",
+				"defaultValue": "sec-sharepoint-datawarehouse-files-svp-secret"
+			},
+			"siteUrl": {
+				"type": "string",
+				"defaultValue": "https://sundtconstruction.sharepoint.com/sites/DatawarehouseFiles/"
+			}
+		},
+		"annotations": [],
+		"type": "SharePointOnlineList",
+		"typeProperties": {
+			"siteUrl": "@{linkedService().siteUrl}",
+			"tenantId": "0a53a6aa-2634-48e0-925d-380ca1cd7811",
+			"servicePrincipalId": "106b6637-0ca5-4113-b1ae-b5e503163b5d",
+			"servicePrincipalKey": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "lsKeyVaultManagedIdentity",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": {
+					"value": "@linkedService().connectionSecretName",
+					"type": "Expression"
+				}
+			}
+		},
+		"connectVia": {
+			"referenceName": "AutoResolveIntegrationRuntime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

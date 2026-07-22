@@ -1,0 +1,37 @@
+{
+	"name": "PROD_dailyHeavyJob",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "plSourceToGoldHeavyJob",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"isEmailNotificationEnabled": "true",
+					"emailNotificationSendToAddress": "Azure-DataWarehouse-Alerts@sundt.com",
+					"batchGroup": "daily"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2023-10-24T13:49:00",
+				"timeZone": "US Mountain Standard Time",
+				"schedule": {
+					"minutes": [
+						45
+					],
+					"hours": [
+						10
+					]
+				}
+			}
+		}
+	}
+}

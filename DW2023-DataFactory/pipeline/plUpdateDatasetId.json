@@ -1,0 +1,605 @@
+{
+	"name": "plUpdateDatasetId",
+	"properties": {
+		"description": "pipeline used to update the dataset ids in the METADATA database so that we can refresh the datasets for the web app using ADF orchestration",
+		"activities": [
+			{
+				"name": "insert to temp table",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "log pipeline start",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ParquetSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"wildcardFolderPath": "pbi_dataset_export",
+							"wildcardFileName": "*.parquet",
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "ParquetReadSettings"
+						}
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"preCopyScript": "DROP TABLE IF EXISTS \nadf.powerBiDatasetStaging",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "workspace_name",
+									"physicalType": "UTF8"
+								},
+								"sink": {
+									"name": "WorkspaceName",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "workspace_id",
+									"physicalType": "UTF8"
+								},
+								"sink": {
+									"name": "WorkspaceId",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "dataset_id"
+								},
+								"sink": {
+									"name": "DatasetId"
+								}
+							},
+							{
+								"source": {
+									"name": "dataset_name"
+								},
+								"sink": {
+									"name": "DatasetName"
+								}
+							},
+							{
+								"source": {
+									"name": "is_web_app_dataset"
+								},
+								"sink": {
+									"name": "IsWebAppDataset"
+								}
+							},
+							{
+								"source": {
+									"name": "is_effective_identity_roles_required"
+								},
+								"sink": {
+									"name": "isEffectiveIdentityRolesRequired"
+								}
+							},
+							{
+								"source": {
+									"name": "etl_gold_timestamp"
+								},
+								"sink": {
+									"name": "lastModifiedTimestamp"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "dsAdlsManagedIdentityParquet",
+						"type": "DatasetReference",
+						"parameters": {
+							"containerName": "adf-staging",
+							"folderPath": "pbi_dataset_export",
+							"fileName": "*.parquet"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "dsAsqlManagedIdentity",
+						"type": "DatasetReference",
+						"parameters": {
+							"connectionString": "sec-metadata-db-connection-string",
+							"schema": "adf",
+							"tableName": "powerBiDatasetStaging"
+						}
+					}
+				]
+			},
+			{
+				"name": "upsert dataset IDs",
+				"description": "upserts dataset IDs to the metadata database",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "insert to temp table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "/****** Create table if not exists *****/\nIF OBJECT_ID(N'[adf].[PowerBiDataset]', 'U') IS NULL\nBEGIN\nCREATE TABLE adf.PowerBiDataset (\n  workspaceName VARCHAR(255),\n  workspaceId VARCHAR(255),\n  datasetName VARCHAR(255),\n  datasetId VARCHAR(255),\n  isWebAppDataset bit,\n  isEffectiveIdentityRolesRequired bit,\n  lastModifiedTimestamp [datetime2](7)\n)\nEND;\n\n/****** Script used to upsert records from the temp table *****/\nMERGE adf.PowerBiDataset AS TARGET\n    USING adf.PowerBiDatasetStaging  AS SOURCE\n    ON (CAST(TARGET.DatasetId AS VARCHAR(250)) = CAST(SOURCE.DatasetId AS VARCHAR(250)))\n    WHEN MATCHED\n\t--update existing values\n    THEN UPDATE\n         SET TARGET.WorkspaceName = SOURCE.WorkspaceName,\n\t\t TARGET.WorkspaceId = SOURCE.WorkspaceId,\n\t\t TARGET.DatasetId = SOURCE.DatasetId,\n\t\t TARGET.DatasetName = SOURCE.DatasetName,\n\t\t TARGET.IsWebAppDataset = SOURCE.IsWebAppDataset,\n\t\t TARGET.isEffectiveIdentityRolesRequired = SOURCE.isEffectiveIdentityRolesRequired,\n\t\t TARGET.lastModifiedTimestamp = SOURCE.lastModifiedTimestamp\n\t--insert new values\n    WHEN NOT MATCHED BY TARGET\n    THEN INSERT (WorkspaceId, WorkspaceName, DatasetName, DatasetId, IsWebAppDataset, isEffectiveIdentityRolesRequired, lastModifiedTimestamp)         \n         VALUES (SOURCE.WorkspaceId\n\t\t,SOURCE.WorkspaceName\n\t\t,SOURCE.DatasetName\n\t\t,SOURCE.DatasetId\n\t\t,SOURCE.IsWebAppDataset\n\t\t,SOURCE.isEffectiveIdentityRolesRequired\n\t\t,SOURCE.lastModifiedTimestamp\n\t\t)\n\t\t--insert new values\n    WHEN NOT MATCHED BY SOURCE\n\tTHEN DELETE;\n\n--cleanup staging table\nDROP TABLE IF EXISTS adf.PowerBiDatasetStaging;\n\n--select\nSELECT * FROM adf.PowerBiDataset",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "dsAsqlManagedIdentity",
+						"type": "DatasetReference",
+						"parameters": {
+							"connectionString": "sec-metadata-db-connection-string",
+							"schema": "adf",
+							"tableName": "PowerBiDataset"
+						}
+					}
+				}
+			},
+			{
+				"name": "log pipeline start",
+				"description": "log pipeline start",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:05:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[adf].[uspLogExecutionMessage]",
+					"storedProcedureParameters": {
+						"dataSourceId": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"dataProcessId": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"executionLogSubject": {
+							"value": {
+								"value": "Start of pipeline: @{pipeline().Pipeline}",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"executionLogMessage": {
+							"value": "STARTING: Starting execution of the pipeline",
+							"type": "String"
+						},
+						"dataFactoryName": {
+							"value": {
+								"value": "@pipeline().DataFactory",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineName": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineRunID": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerID": {
+							"value": {
+								"value": "@pipeline().TriggerId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerName": {
+							"value": {
+								"value": "@pipeline().TriggerName",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerTimestamp": {
+							"value": {
+								"value": "@pipeline().TriggerTime",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"PipelineTriggerType": {
+							"value": {
+								"value": "@pipeline().TriggerType",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"executionTimestamp": {
+							"value": {
+								"value": "@utcnow('yyyy-MM-dd HH:mm:ss')",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"isStart": {
+							"value": "true",
+							"type": "Boolean"
+						},
+						"isEnd": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isError": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isInnerActivity": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isIncremental": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Boolean"
+						},
+						"objectName": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"objectSchema": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "lsAsqlManagedIdentity",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"connectionString": "sec-metadata-db-connection-string"
+					}
+				}
+			},
+			{
+				"name": "log pipeline end",
+				"description": "log pipeline end",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "upsert dataset IDs",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:05:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[adf].[uspLogExecutionMessage]",
+					"storedProcedureParameters": {
+						"dataSourceId": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"dataProcessId": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"executionLogSubject": {
+							"value": {
+								"value": "End of pipeline: @{pipeline().Pipeline}",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"executionLogMessage": {
+							"value": "This is the end of the pipeline",
+							"type": "String"
+						},
+						"dataFactoryName": {
+							"value": {
+								"value": "@pipeline().DataFactory",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineName": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineRunID": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerID": {
+							"value": {
+								"value": "@pipeline().TriggerId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerName": {
+							"value": {
+								"value": "@pipeline().TriggerName",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerTimestamp": {
+							"value": {
+								"value": "@pipeline().TriggerTime",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"pipelineTriggerType": {
+							"value": {
+								"value": "@pipeline().TriggerType",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"executionTimestamp": {
+							"value": {
+								"value": "@utcnow('yyyy-MM-dd HH:mm:ss')",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"isStart": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isEnd": {
+							"value": "true",
+							"type": "Boolean"
+						},
+						"isError": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isInnerActivity": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isIncremental": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Boolean"
+						},
+						"objectName": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"objectSchema": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "lsAsqlManagedIdentity",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"connectionString": "sec-metadata-db-connection-string"
+					}
+				}
+			},
+			{
+				"name": "error notification 2",
+				"description": "log error and notify users if notifications are enabled",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "insert to temp table",
+						"dependencyConditions": [
+							"Failed"
+						]
+					},
+					{
+						"activity": "upsert dataset IDs",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plLogMsgAndSendEmail",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"metadataConnectionString": "sec-metadata-db-connection-string",
+						"emailEnabled": "tru",
+						"emailNotificationSendToAddress": {
+							"value": "@pipeline().parameters.emailNotificationSendToAddress",
+							"type": "Expression"
+						},
+						"emailImportance": "High",
+						"emailSubject": {
+							"value": "FAILURE: Error during pipeline: @{pipeline().Pipeline}",
+							"type": "Expression"
+						},
+						"emailMessage": {
+							"value": "There was an error during the activity of the pipeline @{pipeline().Pipeline}",
+							"type": "Expression"
+						},
+						"emailColor": "Red",
+						"executionLogSubject": {
+							"value": "Error during pipeline: @{pipeline().Pipeline}",
+							"type": "Expression"
+						},
+						"executionLogMessage": {
+							"value": "There was an error during the activity of the pipeline @{pipeline().Pipeline}",
+							"type": "Expression"
+						},
+						"dataFactoryName": {
+							"value": "@pipeline().DataFactory",
+							"type": "Expression"
+						},
+						"pipelineName": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"pipelineRunID": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"pipelineTriggerID": {
+							"value": "@pipeline().TriggerId",
+							"type": "Expression"
+						},
+						"pipelineTriggerName": {
+							"value": "@pipeline().TriggerName",
+							"type": "Expression"
+						},
+						"pipelineTriggerTimestamp": {
+							"value": "@pipeline().TriggerTime",
+							"type": "Expression"
+						},
+						"pipelineTriggerType": {
+							"value": "@pipeline().TriggerType",
+							"type": "Expression"
+						},
+						"executionTimestamp": {
+							"value": "@{utcnow('yyyy-MM-dd HH:mm:ss')}",
+							"type": "Expression"
+						},
+						"isStart": "false",
+						"isEnd": "false",
+						"isError": "true",
+						"isInnerActivity": "false",
+						"isIncremental": "false",
+						"objectName": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						},
+						"objectSchema": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						},
+						"dataSourceId": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						},
+						"dataProcessId": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"emailEnabled": {
+				"type": "string"
+			},
+			"emailNotificationSendToAddress": {
+				"type": "string"
+			},
+			"dataSourceName": {
+				"type": "string",
+				"defaultValue": "webapp"
+			}
+		},
+		"variables": {
+			"metadataConnectionString": {
+				"type": "String",
+				"defaultValue": "sec-metadata-db-connection-string"
+			}
+		},
+		"folder": {
+			"name": "002_webAppIntegration/IndividualWebAppTables"
+		},
+		"annotations": []
+	}
+}

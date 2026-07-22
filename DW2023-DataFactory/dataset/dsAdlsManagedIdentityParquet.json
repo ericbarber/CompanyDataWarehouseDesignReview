@@ -1,0 +1,1542 @@
+{
+	"name": "dsAdlsManagedIdentityParquet",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lsAdlsManagedIdentity",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"containerName": {
+				"type": "string",
+				"defaultValue": "raw"
+			},
+			"folderPath": {
+				"type": "String"
+			},
+			"fileName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().fileName",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@dataset().folderPath",
+					"type": "Expression"
+				},
+				"fileSystem": {
+					"value": "@dataset().containerName",
+					"type": "Expression"
+				}
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "Id",
+				"type": "UTF8"
+			},
+			{
+				"name": "SinkCreatedOn",
+				"type": "INT96"
+			},
+			{
+				"name": "SinkModifiedOn",
+				"type": "INT96"
+			},
+			{
+				"name": "statecode",
+				"type": "INT32"
+			},
+			{
+				"name": "statuscode",
+				"type": "INT32"
+			},
+			{
+				"name": "address1_addresstypecode",
+				"type": "INT32"
+			},
+			{
+				"name": "msdyn_travelchargetype",
+				"type": "INT32"
+			},
+			{
+				"name": "address1_shippingmethodcode",
+				"type": "INT32"
+			},
+			{
+				"name": "address1_freighttermscode",
+				"type": "INT32"
+			},
+			{
+				"name": "accountratingcode",
+				"type": "INT32"
+			},
+			{
+				"name": "preferredappointmenttimecode",
+				"type": "INT32"
+			},
+			{
+				"name": "accountclassificationcode",
+				"type": "INT32"
+			},
+			{
+				"name": "customertypecode",
+				"type": "INT32"
+			},
+			{
+				"name": "preferredcontactmethodcode",
+				"type": "INT32"
+			},
+			{
+				"name": "ownershipcode",
+				"type": "INT32"
+			},
+			{
+				"name": "address2_addresstypecode",
+				"type": "INT32"
+			},
+			{
+				"name": "businesstypecode",
+				"type": "INT32"
+			},
+			{
+				"name": "shippingmethodcode",
+				"type": "INT32"
+			},
+			{
+				"name": "paymenttermscode",
+				"type": "INT32"
+			},
+			{
+				"name": "customersizecode",
+				"type": "INT32"
+			},
+			{
+				"name": "accountcategorycode",
+				"type": "INT32"
+			},
+			{
+				"name": "industrycode",
+				"type": "INT32"
+			},
+			{
+				"name": "preferredappointmentdaycode",
+				"type": "INT32"
+			},
+			{
+				"name": "address2_shippingmethodcode",
+				"type": "INT32"
+			},
+			{
+				"name": "address2_freighttermscode",
+				"type": "INT32"
+			},
+			{
+				"name": "territorycode",
+				"type": "INT32"
+			},
+			{
+				"name": "donotpostalmail",
+				"type": "BOOLEAN"
+			},
+			{
+				"name": "creditonhold",
+				"type": "BOOLEAN"
+			},
+			{
+				"name": "donotbulkpostalmail",
+				"type": "BOOLEAN"
+			},
+			{
+				"name": "esi_enableforlearnerexperienceportal",
+				"type": "BOOLEAN"
+			},
+			{
+				"name": "donotbulkemail",
+				"type": "BOOLEAN"
+			},
+			{
+				"name": "donotfax",
+				"type": "BOOLEAN"
+			},
+			{
+				"name": "msdyn_gdproptout",
+				"type": "BOOLEAN"
+			},
+			{
+				"name": "donotemail",
+				"type": "BOOLEAN"
+			},
+			{
+				"name": "marketingonly",
+				"type": "BOOLEAN"
+			},
+			{
+				"name": "followemail",
+				"type": "BOOLEAN"
+			},
+			{
+				"name": "merged",
+				"type": "BOOLEAN"
+			},
+			{
+				"name": "donotphone",
+				"type": "BOOLEAN"
+			},
+			{
+				"name": "donotsendmm",
+				"type": "BOOLEAN"
+			},
+			{
+				"name": "participatesinworkflow",
+				"type": "BOOLEAN"
+			},
+			{
+				"name": "isprivate",
+				"type": "BOOLEAN"
+			},
+			{
+				"name": "msdyn_taxexempt",
+				"type": "BOOLEAN"
+			},
+			{
+				"name": "slainvokedid",
+				"type": "UTF8"
+			},
+			{
+				"name": "slainvokedid_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "originatingleadid",
+				"type": "UTF8"
+			},
+			{
+				"name": "originatingleadid_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "owningbusinessunit",
+				"type": "UTF8"
+			},
+			{
+				"name": "owningbusinessunit_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "territoryid",
+				"type": "UTF8"
+			},
+			{
+				"name": "territoryid_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "slaid",
+				"type": "UTF8"
+			},
+			{
+				"name": "slaid_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "primarycontactid",
+				"type": "UTF8"
+			},
+			{
+				"name": "primarycontactid_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "parentaccountid",
+				"type": "UTF8"
+			},
+			{
+				"name": "parentaccountid_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "createdonbehalfby",
+				"type": "UTF8"
+			},
+			{
+				"name": "createdonbehalfby_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "msdyn_preferredresource",
+				"type": "UTF8"
+			},
+			{
+				"name": "msdyn_preferredresource_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "modifiedby",
+				"type": "UTF8"
+			},
+			{
+				"name": "modifiedby_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "modifiedonbehalfby",
+				"type": "UTF8"
+			},
+			{
+				"name": "modifiedonbehalfby_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "msdyn_workhourtemplate",
+				"type": "UTF8"
+			},
+			{
+				"name": "msdyn_workhourtemplate_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "owninguser",
+				"type": "UTF8"
+			},
+			{
+				"name": "owninguser_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "owningteam",
+				"type": "UTF8"
+			},
+			{
+				"name": "owningteam_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "transactioncurrencyid",
+				"type": "UTF8"
+			},
+			{
+				"name": "transactioncurrencyid_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_tpm",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_tpm_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "masterid",
+				"type": "UTF8"
+			},
+			{
+				"name": "masterid_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "modifiedbyexternalparty",
+				"type": "UTF8"
+			},
+			{
+				"name": "modifiedbyexternalparty_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "defaultpricelevelid",
+				"type": "UTF8"
+			},
+			{
+				"name": "defaultpricelevelid_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "preferredequipmentid",
+				"type": "UTF8"
+			},
+			{
+				"name": "preferredequipmentid_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "msdyn_accountkpiid",
+				"type": "UTF8"
+			},
+			{
+				"name": "msdyn_accountkpiid_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "createdby",
+				"type": "UTF8"
+			},
+			{
+				"name": "createdby_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "msdyn_billingaccount",
+				"type": "UTF8"
+			},
+			{
+				"name": "msdyn_billingaccount_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "createdbyexternalparty",
+				"type": "UTF8"
+			},
+			{
+				"name": "createdbyexternalparty_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "preferredserviceid",
+				"type": "UTF8"
+			},
+			{
+				"name": "preferredserviceid_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "msdyn_salestaxcode",
+				"type": "UTF8"
+			},
+			{
+				"name": "msdyn_salestaxcode_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "preferredsystemuserid",
+				"type": "UTF8"
+			},
+			{
+				"name": "preferredsystemuserid_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_preferredlearningpartnerid",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_preferredlearningpartnerid_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "msdyn_serviceterritory",
+				"type": "UTF8"
+			},
+			{
+				"name": "msdyn_serviceterritory_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "ownerid",
+				"type": "UTF8"
+			},
+			{
+				"name": "ownerid_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "aging30",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 2
+			},
+			{
+				"name": "aging60_base",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 4
+			},
+			{
+				"name": "marketcap",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 2
+			},
+			{
+				"name": "msdyn_travelcharge_base",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 2
+			},
+			{
+				"name": "creditlimit",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 2
+			},
+			{
+				"name": "creditlimit_base",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 4
+			},
+			{
+				"name": "aging90_base",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 4
+			},
+			{
+				"name": "aging60",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 2
+			},
+			{
+				"name": "aging30_base",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 4
+			},
+			{
+				"name": "revenue",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 2
+			},
+			{
+				"name": "msdyn_travelcharge",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 2
+			},
+			{
+				"name": "openrevenue",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 2
+			},
+			{
+				"name": "revenue_base",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 4
+			},
+			{
+				"name": "openrevenue_base",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 2
+			},
+			{
+				"name": "marketcap_base",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 4
+			},
+			{
+				"name": "aging90",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 2
+			},
+			{
+				"name": "emailaddress3",
+				"type": "UTF8"
+			},
+			{
+				"name": "emailaddress2",
+				"type": "UTF8"
+			},
+			{
+				"name": "emailaddress1",
+				"type": "UTF8"
+			},
+			{
+				"name": "masteraccountidyominame",
+				"type": "UTF8"
+			},
+			{
+				"name": "address1_city",
+				"type": "UTF8"
+			},
+			{
+				"name": "address1_line1",
+				"type": "UTF8"
+			},
+			{
+				"name": "modifiedon",
+				"type": "INT96"
+			},
+			{
+				"name": "address1_longitude",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 5
+			},
+			{
+				"name": "websiteurl",
+				"type": "UTF8"
+			},
+			{
+				"name": "createdbyexternalpartyname",
+				"type": "UTF8"
+			},
+			{
+				"name": "entityimage_timestamp",
+				"type": "INT64"
+			},
+			{
+				"name": "modifiedbyyominame",
+				"type": "UTF8"
+			},
+			{
+				"name": "sharesoutstanding",
+				"type": "INT32"
+			},
+			{
+				"name": "primarycontactidname",
+				"type": "UTF8"
+			},
+			{
+				"name": "address2_city",
+				"type": "UTF8"
+			},
+			{
+				"name": "preferredsystemuseridyominame",
+				"type": "UTF8"
+			},
+			{
+				"name": "opendeals_date",
+				"type": "INT96"
+			},
+			{
+				"name": "modifiedbyexternalpartyyominame",
+				"type": "UTF8"
+			},
+			{
+				"name": "masteraccountidname",
+				"type": "UTF8"
+			},
+			{
+				"name": "preferredsystemuseridname",
+				"type": "UTF8"
+			},
+			{
+				"name": "preferredserviceidname",
+				"type": "UTF8"
+			},
+			{
+				"name": "address2_stateorprovince",
+				"type": "UTF8"
+			},
+			{
+				"name": "timespentbymeonemailandmeetings",
+				"type": "UTF8"
+			},
+			{
+				"name": "address2_country",
+				"type": "UTF8"
+			},
+			{
+				"name": "msdyn_accountkpiidname",
+				"type": "UTF8"
+			},
+			{
+				"name": "address2_line2",
+				"type": "UTF8"
+			},
+			{
+				"name": "accountid",
+				"type": "UTF8"
+			},
+			{
+				"name": "msdyn_preferredresourcename",
+				"type": "UTF8"
+			},
+			{
+				"name": "onholdtime",
+				"type": "INT32"
+			},
+			{
+				"name": "esi_tpmyominame",
+				"type": "UTF8"
+			},
+			{
+				"name": "originatingleadidname",
+				"type": "UTF8"
+			},
+			{
+				"name": "parentaccountidname",
+				"type": "UTF8"
+			},
+			{
+				"name": "address1_utcoffset",
+				"type": "INT32"
+			},
+			{
+				"name": "numberofemployees",
+				"type": "INT32"
+			},
+			{
+				"name": "modifiedbyexternalpartyname",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_tpmname",
+				"type": "UTF8"
+			},
+			{
+				"name": "exchangerate",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 10
+			},
+			{
+				"name": "address2_county",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_tpid",
+				"type": "UTF8"
+			},
+			{
+				"name": "address2_line1",
+				"type": "UTF8"
+			},
+			{
+				"name": "telephone3",
+				"type": "UTF8"
+			},
+			{
+				"name": "msdyn_taxexemptnumber",
+				"type": "UTF8"
+			},
+			{
+				"name": "address2_latitude",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 5
+			},
+			{
+				"name": "createdon",
+				"type": "INT96"
+			},
+			{
+				"name": "slaname",
+				"type": "UTF8"
+			},
+			{
+				"name": "slainvokedidname",
+				"type": "UTF8"
+			},
+			{
+				"name": "address1_composite",
+				"type": "UTF8"
+			},
+			{
+				"name": "opendeals_state",
+				"type": "INT32"
+			},
+			{
+				"name": "address2_postalcode",
+				"type": "UTF8"
+			},
+			{
+				"name": "lastusedincampaign",
+				"type": "INT96"
+			},
+			{
+				"name": "utcconversiontimezonecode",
+				"type": "INT32"
+			},
+			{
+				"name": "msdyn_salestaxcodename",
+				"type": "UTF8"
+			},
+			{
+				"name": "owneridyominame",
+				"type": "UTF8"
+			},
+			{
+				"name": "entityimage_url",
+				"type": "UTF8"
+			},
+			{
+				"name": "teamsfollowed",
+				"type": "INT32"
+			},
+			{
+				"name": "address2_line3",
+				"type": "UTF8"
+			},
+			{
+				"name": "description",
+				"type": "UTF8"
+			},
+			{
+				"name": "timezoneruleversionnumber",
+				"type": "INT32"
+			},
+			{
+				"name": "address1_county",
+				"type": "UTF8"
+			},
+			{
+				"name": "msdyn_workhourtemplatename",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_preferredlearningpartneridyominame",
+				"type": "UTF8"
+			},
+			{
+				"name": "createdbyexternalpartyyominame",
+				"type": "UTF8"
+			},
+			{
+				"name": "entityimageid",
+				"type": "UTF8"
+			},
+			{
+				"name": "address2_postofficebox",
+				"type": "UTF8"
+			},
+			{
+				"name": "address2_telephone1",
+				"type": "UTF8"
+			},
+			{
+				"name": "address2_telephone2",
+				"type": "UTF8"
+			},
+			{
+				"name": "address2_telephone3",
+				"type": "UTF8"
+			},
+			{
+				"name": "originatingleadidyominame",
+				"type": "UTF8"
+			},
+			{
+				"name": "preferredequipmentidname",
+				"type": "UTF8"
+			},
+			{
+				"name": "address1_addressid",
+				"type": "UTF8"
+			},
+			{
+				"name": "traversedpath",
+				"type": "UTF8"
+			},
+			{
+				"name": "territoryidname",
+				"type": "UTF8"
+			},
+			{
+				"name": "yominame",
+				"type": "UTF8"
+			},
+			{
+				"name": "createdonbehalfbyname",
+				"type": "UTF8"
+			},
+			{
+				"name": "address2_name",
+				"type": "UTF8"
+			},
+			{
+				"name": "openrevenue_state",
+				"type": "INT32"
+			},
+			{
+				"name": "primarysatoriid",
+				"type": "UTF8"
+			},
+			{
+				"name": "name",
+				"type": "UTF8"
+			},
+			{
+				"name": "primarytwitterid",
+				"type": "UTF8"
+			},
+			{
+				"name": "owneridname",
+				"type": "UTF8"
+			},
+			{
+				"name": "modifiedonbehalfbyname",
+				"type": "UTF8"
+			},
+			{
+				"name": "overriddencreatedon",
+				"type": "INT96"
+			},
+			{
+				"name": "address2_composite",
+				"type": "UTF8"
+			},
+			{
+				"name": "address1_country",
+				"type": "UTF8"
+			},
+			{
+				"name": "transactioncurrencyidname",
+				"type": "UTF8"
+			},
+			{
+				"name": "address1_stateorprovince",
+				"type": "UTF8"
+			},
+			{
+				"name": "address1_line3",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_preferredlearningpartneridname",
+				"type": "UTF8"
+			},
+			{
+				"name": "processid",
+				"type": "UTF8"
+			},
+			{
+				"name": "msdyn_billingaccountyominame",
+				"type": "UTF8"
+			},
+			{
+				"name": "address1_telephone1",
+				"type": "UTF8"
+			},
+			{
+				"name": "address1_telephone2",
+				"type": "UTF8"
+			},
+			{
+				"name": "address1_telephone3",
+				"type": "UTF8"
+			},
+			{
+				"name": "address1_postofficebox",
+				"type": "UTF8"
+			},
+			{
+				"name": "createdonbehalfbyyominame",
+				"type": "UTF8"
+			},
+			{
+				"name": "address1_name",
+				"type": "UTF8"
+			},
+			{
+				"name": "fax",
+				"type": "UTF8"
+			},
+			{
+				"name": "sic",
+				"type": "UTF8"
+			},
+			{
+				"name": "address2_utcoffset",
+				"type": "INT32"
+			},
+			{
+				"name": "stageid",
+				"type": "UTF8"
+			},
+			{
+				"name": "accountnumber",
+				"type": "UTF8"
+			},
+			{
+				"name": "address2_fax",
+				"type": "UTF8"
+			},
+			{
+				"name": "owneridtype",
+				"type": "UTF8"
+			},
+			{
+				"name": "address2_longitude",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 5
+			},
+			{
+				"name": "ftpsiteurl",
+				"type": "UTF8"
+			},
+			{
+				"name": "createdbyname",
+				"type": "UTF8"
+			},
+			{
+				"name": "address1_primarycontactname",
+				"type": "UTF8"
+			},
+			{
+				"name": "lastonholdtime",
+				"type": "INT96"
+			},
+			{
+				"name": "address1_line2",
+				"type": "UTF8"
+			},
+			{
+				"name": "openrevenue_date",
+				"type": "INT96"
+			},
+			{
+				"name": "address1_postalcode",
+				"type": "UTF8"
+			},
+			{
+				"name": "tickersymbol",
+				"type": "UTF8"
+			},
+			{
+				"name": "address2_upszone",
+				"type": "UTF8"
+			},
+			{
+				"name": "defaultpricelevelidname",
+				"type": "UTF8"
+			},
+			{
+				"name": "msdyn_serviceterritoryname",
+				"type": "UTF8"
+			},
+			{
+				"name": "stockexchange",
+				"type": "UTF8"
+			},
+			{
+				"name": "msdyn_billingaccountname",
+				"type": "UTF8"
+			},
+			{
+				"name": "importsequencenumber",
+				"type": "INT32"
+			},
+			{
+				"name": "msdyn_workorderinstructions",
+				"type": "UTF8"
+			},
+			{
+				"name": "telephone2",
+				"type": "UTF8"
+			},
+			{
+				"name": "versionnumber",
+				"type": "INT64"
+			},
+			{
+				"name": "telephone1",
+				"type": "UTF8"
+			},
+			{
+				"name": "address2_addressid",
+				"type": "UTF8"
+			},
+			{
+				"name": "address1_fax",
+				"type": "UTF8"
+			},
+			{
+				"name": "address1_latitude",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 5
+			},
+			{
+				"name": "primarycontactidyominame",
+				"type": "UTF8"
+			},
+			{
+				"name": "modifiedbyname",
+				"type": "UTF8"
+			},
+			{
+				"name": "createdbyyominame",
+				"type": "UTF8"
+			},
+			{
+				"name": "address1_upszone",
+				"type": "UTF8"
+			},
+			{
+				"name": "modifiedonbehalfbyyominame",
+				"type": "UTF8"
+			},
+			{
+				"name": "parentaccountidyominame",
+				"type": "UTF8"
+			},
+			{
+				"name": "address2_primarycontactname",
+				"type": "UTF8"
+			},
+			{
+				"name": "opendeals",
+				"type": "INT32"
+			},
+			{
+				"name": "esi_prioritizationtranche",
+				"type": "INT32"
+			},
+			{
+				"name": "esi_subsegment",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_salesunit",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_area",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_industry",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_segment",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_crmaccountid",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_esicustomertier",
+				"type": "INT32"
+			},
+			{
+				"name": "esi_pseid",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_pseid_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_totalnumberofitprofessionals",
+				"type": "INT32"
+			},
+			{
+				"name": "esi_totalskillingheadcount_state",
+				"type": "INT32"
+			},
+			{
+				"name": "esi_totalskillingheadcount",
+				"type": "INT32"
+			},
+			{
+				"name": "esi_totalskillingheadcount_date",
+				"type": "INT96"
+			},
+			{
+				"name": "esi_msxguid",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_pseidname",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_pseidyominame",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_esicustomertierid",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_esicustomertierid_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_esicustomertieridname",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_s500customer",
+				"type": "BOOLEAN"
+			},
+			{
+				"name": "esi_region",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_subsidiary",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_territory",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_lxpexceptionreason",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_primarylandingpageurl",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_isvalidprimarylandingpageurl",
+				"type": "INT32"
+			},
+			{
+				"name": "esi_industryfocus",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_mpnorgid",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_specialties",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_enterprisecontracts",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_othermsworkloadtraining",
+				"type": "UTF8"
+			},
+			{
+				"name": "msa_managingpartnerid",
+				"type": "UTF8"
+			},
+			{
+				"name": "msa_managingpartnerid_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "adx_modifiedbyusername",
+				"type": "UTF8"
+			},
+			{
+				"name": "msa_managingpartneridyominame",
+				"type": "UTF8"
+			},
+			{
+				"name": "msa_managingpartneridname",
+				"type": "UTF8"
+			},
+			{
+				"name": "adx_modifiedbyipaddress",
+				"type": "UTF8"
+			},
+			{
+				"name": "adx_createdbyusername",
+				"type": "UTF8"
+			},
+			{
+				"name": "adx_createdbyipaddress",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_numberofmcts",
+				"type": "INT32"
+			},
+			{
+				"name": "esi_aad",
+				"type": "BOOLEAN"
+			},
+			{
+				"name": "esi_tpc",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_tpc_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_tpcname",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_tpcyominame",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_ispartner",
+				"type": "BOOLEAN"
+			},
+			{
+				"name": "esi_iscustomer",
+				"type": "BOOLEAN"
+			},
+			{
+				"name": "esi_partneroneid",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_isamp",
+				"type": "BOOLEAN"
+			},
+			{
+				"name": "esi_primarytsr",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_primarytsr_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_secondarycontact",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_secondarycontact_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_secondarycontactyominame",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_primarytsrname",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_secondarycontactname",
+				"type": "UTF8"
+			},
+			{
+				"name": "msevtmgt_hotelgroup",
+				"type": "INT32"
+			},
+			{
+				"name": "msevtmgt_rentalcarprovider",
+				"type": "INT32"
+			},
+			{
+				"name": "msdyncrm_insights_placeholder",
+				"type": "UTF8"
+			},
+			{
+				"name": "adx_partner_status",
+				"type": "INT32"
+			},
+			{
+				"name": "adx_partnerprogram_status",
+				"type": "INT32"
+			},
+			{
+				"name": "adx_partnerhascapacity",
+				"type": "BOOLEAN"
+			},
+			{
+				"name": "adx_createdbyportalcontactid",
+				"type": "UTF8"
+			},
+			{
+				"name": "adx_createdbyportalcontactid_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "adx_maximumopportunityrevenue_base",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 4
+			},
+			{
+				"name": "adx_minimumopportunityrevenue",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 4
+			},
+			{
+				"name": "adx_minimumopportunityrevenue_base",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 4
+			},
+			{
+				"name": "adx_maximumopportunityrevenue",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 4
+			},
+			{
+				"name": "adx_lossrate",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 2
+			},
+			{
+				"name": "adx_winrate",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 2
+			},
+			{
+				"name": "adx_createdbyportalcontactidname",
+				"type": "UTF8"
+			},
+			{
+				"name": "adx_returnrate",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 2
+			},
+			{
+				"name": "adx_numberofopportunitieswon",
+				"type": "INT32"
+			},
+			{
+				"name": "adx_averagetimetocloseanopportunity",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 2
+			},
+			{
+				"name": "adx_partnerprogram_enddate",
+				"type": "INT96"
+			},
+			{
+				"name": "adx_partnerprogram_startdate",
+				"type": "INT96"
+			},
+			{
+				"name": "adx_feedbackrate",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 2
+			},
+			{
+				"name": "adx_partnerranking",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 2
+			},
+			{
+				"name": "adx_numberofopportunitiesdeclined",
+				"type": "INT32"
+			},
+			{
+				"name": "adx_touchrate",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 2
+			},
+			{
+				"name": "adx_activeopportunitycount",
+				"type": "INT32"
+			},
+			{
+				"name": "adx_numberofreturnedopportunities",
+				"type": "INT32"
+			},
+			{
+				"name": "adx_numberofopportunitieswithfeedback",
+				"type": "INT32"
+			},
+			{
+				"name": "adx_currentpartnercapacity",
+				"type": "INT32"
+			},
+			{
+				"name": "adx_numberofopportunitiesaccepted",
+				"type": "INT32"
+			},
+			{
+				"name": "adx_createdbyportalcontactidyominame",
+				"type": "UTF8"
+			},
+			{
+				"name": "adx_numberofopportunitiesdelivered",
+				"type": "INT32"
+			},
+			{
+				"name": "adx_stallrate",
+				"type": "DECIMAL",
+				"precision": 38,
+				"scale": 2
+			},
+			{
+				"name": "esi_lxpwelcomeletters",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_lxpwelcomeletters_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_membershipoffer",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_membershipoffer_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_membershipoffername",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_lxpwelcomelettersname",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_accountdisplayname",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_accesstype",
+				"type": "BOOLEAN"
+			},
+			{
+				"name": "esi_language",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_language_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_languagename",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_previousownerid",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_previousownerid_entitytype",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_lastassignmentdate",
+				"type": "INT96"
+			},
+			{
+				"name": "esi_previousowneridyominame",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_previousowneridname",
+				"type": "UTF8"
+			},
+			{
+				"name": "esi_cxpenableforreports",
+				"type": "BOOLEAN"
+			}
+		],
+		"containerName": {
+			"type": "string",
+			"defaultValue": "raw"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

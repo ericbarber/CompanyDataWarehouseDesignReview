@@ -1,0 +1,29 @@
+{
+	"name": "DEV_Security",
+	"properties": {
+		"description": "Execute the security pipeline",
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "plWebAppUpdateSecurityAndWebAppIntegration",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"isEmailNotificationEnabled": "true",
+					"emailNotificationSendToAddress": "Azure-DataWarehouse-Alerts@sundt.com"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Hour",
+				"interval": 4,
+				"startTime": "2023-09-03T16:39:00",
+				"timeZone": "Greenwich Standard Time"
+			}
+		}
+	}
+}

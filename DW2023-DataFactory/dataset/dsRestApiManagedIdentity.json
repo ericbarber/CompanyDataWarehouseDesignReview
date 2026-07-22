@@ -1,0 +1,43 @@
+{
+	"name": "dsRestApiManagedIdentity",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lsRestApiManagedIdentity",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"baseUrl": {
+					"value": "@dataset().baseUrl",
+					"type": "Expression"
+				},
+				"aadResource": {
+					"value": "@dataset().aadResource",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"relativeUrl": {
+				"type": "string",
+				"defaultValue": "@dataset().relativeUrl"
+			},
+			"baseUrl": {
+				"type": "string",
+				"defaultValue": "@dataset().baseUrl"
+			},
+			"aadResource": {
+				"type": "string",
+				"defaultValue": "@dataset().aadResource"
+			}
+		},
+		"annotations": [],
+		"type": "RestResource",
+		"typeProperties": {
+			"relativeUrl": {
+				"value": "@dataset().relativeUrl",
+				"type": "Expression"
+			}
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

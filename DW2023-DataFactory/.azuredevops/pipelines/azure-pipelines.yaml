@@ -1,0 +1,63 @@
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+    name: SkipDev # required at runtime in AzureDevOps 
+
+stages:
+
+- stage: Build
+  displayName: Build
+  jobs:
+  - template: templates/build.yaml
+
+- stage: Dev
+  dependsOn:
+  - Build
+  condition: and(succeeded('Build'), eq(variables.SkipDev, false))
+  jobs:
+  - template: templates/release.yaml
+    parameters:
+      displayName: Deploying to Dev
+      environment: DataFactory-Dev
+      group: DataFactory-Dev
+      azServicePrincipal: SP-DevOps-DataWarehouse2023-Dev
+      azResourceGroup: rg-dw2023-westus3-dev
+      azDataFactory: adf-dw2023-dev-sdt
+      azDeploy: true
+
+- stage: Test
+  dependsOn:
+  - Build
+  - Dev
+  condition: succeeded('Build')
+  jobs:
+  - template: templates/release.yaml
+    parameters:
+      displayName: Deploying to Test
+      environment: DataFactory-Test
+      group: DataFactory-Test
+      azServicePrincipal: SP-DevOps-DataWarehouse2023-Dev
+      azResourceGroup: rg-dw2023-westus3-test
+      azDataFactory: adf-dw2023-test-sdt
+      azDeploy: true
+
+- stage: Prod
+  dependsOn:
+  - Build
+  - Dev
+  - Test
+  condition: succeeded('Test')
+  jobs:
+  - template: templates/release.yaml
+    parameters:
+      displayName: Deploying to Prod
+      environment: DataFactory-Prod
+      group: DataFactory-Prod
+      azServicePrincipal: SP-DevOps-DataWarehouse2023-Prod
+      azResourceGroup: rg-dw2023-westus3-prod
+      azDataFactory: adf-dw2023-prod-sdt
+      azDeploy: true

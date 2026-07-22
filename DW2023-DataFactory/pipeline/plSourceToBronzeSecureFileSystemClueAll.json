@@ -1,0 +1,2059 @@
+{
+	"name": "plSourceToBronzeSecureFileSystemClueAll",
+	"properties": {
+		"description": "pipeline to get data from a secure file system and load it into raw",
+		"activities": [
+			{
+				"name": "log pipeline start",
+				"description": "log pipeline start",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:05:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[adf].[uspLogExecutionMessage]",
+					"storedProcedureParameters": {
+						"dataSourceId": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"dataProcessId": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"executionLogSubject": {
+							"value": {
+								"value": "Start of pipeline: @{pipeline().Pipeline}",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"executionLogMessage": {
+							"value": "STARTING: Starting execution of the pipeline",
+							"type": "String"
+						},
+						"dataFactoryName": {
+							"value": {
+								"value": "@pipeline().DataFactory",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineName": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineRunID": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerID": {
+							"value": {
+								"value": "@pipeline().TriggerId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerName": {
+							"value": {
+								"value": "@pipeline().TriggerName",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerTimestamp": {
+							"value": {
+								"value": "@pipeline().TriggerTime",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"PipelineTriggerType": {
+							"value": {
+								"value": "@pipeline().TriggerType",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"executionTimestamp": {
+							"value": {
+								"value": "@utcnow('yyyy-MM-dd HH:mm:ss')",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"isStart": {
+							"value": "true",
+							"type": "Boolean"
+						},
+						"isEnd": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isError": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isInnerActivity": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isIncremental": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Boolean"
+						},
+						"objectName": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"objectSchema": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "lsAsqlManagedIdentity",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"connectionString": "sec-metadata-db-connection-string"
+					}
+				}
+			},
+			{
+				"name": "lookup objects",
+				"description": "lookup tables that are enabled in metadata table",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "log pipeline start",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:05:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "SELECT\n      *\nFROM adf.DataSource\nWHERE \n   dataSourceType = 'SFTP File'\n   AND (nullif('@{pipeline().parameters.dataSourceName}','-') is null OR dataSourceName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.dataSourceName}', ',')))\n   AND (nullif('@{pipeline().parameters.objectSchema}','-') is null OR objectSchema IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectSchema}', ',')))\n   AND (nullif('@{pipeline().parameters.objectName}','-') is null OR objectName IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.objectName}', ',')))\n   AND (nullif('@{pipeline().parameters.batchGroup}','-') is null OR batchGroup IN (SELECT TRIM(VALUE) FROM STRING_SPLIT('@{pipeline().parameters.batchGroup}', ',')))\n   AND isEnabled = 1                  ",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "dsAsqlManagedIdentity",
+						"type": "DatasetReference",
+						"parameters": {
+							"connectionString": {
+								"value": "@variables('metadataConnectionString')",
+								"type": "Expression"
+							},
+							"schema": "-",
+							"tableName": "-"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "for each object",
+				"description": "perform a series of steps for each metadata item found in the lookup activity",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "set utc timestamp",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "lookup objects",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "set local timestamp",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Switch1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('lookup objects').output.value",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 5,
+					"activities": [
+						{
+							"name": "write to delta table",
+							"description": "runs notebook to convert parquet to delta  table",
+							"type": "DatabricksNotebook",
+							"dependsOn": [
+								{
+									"activity": "if file had zero rows",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.01:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"notebookPath": "/data_engineering/100_raw_to_bronze/raw_to_bronze_files_all",
+								"baseParameters": {
+									"source_file_path": {
+										"value": "/@{item().dataSourceName}/@{item().objectName}/@{formatDateTime(variables('localTimestamp'), 'yyyy')}/@{formatDateTime(variables('localTimestamp'), 'MM')}/@{formatDateTime(variables('localTimestamp'), 'dd')}/@{item().objectName}-@{variables('localTimestamp')}.csv",
+										"type": "Expression"
+									},
+									"datasource_name": {
+										"value": "@item().dataSourceName",
+										"type": "Expression"
+									},
+									"object_name": {
+										"value": "@item().objectName",
+										"type": "Expression"
+									},
+									"primary_key_column_list": {
+										"value": "@coalesce(item().primaryKeyColumns, '')",
+										"type": "Expression"
+									},
+									"is_incremental": {
+										"value": "@string(item().IsIncremental)",
+										"type": "Expression"
+									},
+									"description": {
+										"value": "@coalesce(item().description, '')",
+										"type": "Expression"
+									},
+									"debug_flag": {
+										"value": "@pipeline().parameters.debug",
+										"type": "Expression"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "lsAdbClusterManagedIdentity",
+								"type": "LinkedServiceReference"
+							}
+						},
+						{
+							"name": "update metadata",
+							"description": "update the lastExecution timestamp and recordCount in the metadata",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "write to delta table",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.00:05:00",
+								"retry": 3,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[adf].[uspUpdateMetadataDataSource]",
+								"storedProcedureParameters": {
+									"dataSourceID": {
+										"value": {
+											"value": "@item().dataSourceId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"lastExecutionTimestamp": {
+										"value": {
+											"value": "@variables('utcTimestamp')",
+											"type": "Expression"
+										},
+										"type": "Datetime"
+									},
+									"watermarkValue": {
+										"value": {
+											"value": "@variables('localTimestamp')",
+											"type": "Expression"
+										},
+										"type": "Datetime"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "lsAsqlManagedIdentity",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"connectionString": "sec-metadata-db-connection-string"
+								}
+							}
+						},
+						{
+							"name": "log item start",
+							"description": "start item logging",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.00:05:00",
+								"retry": 3,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[adf].[uspLogExecutionMessage]",
+								"storedProcedureParameters": {
+									"dataSourceId": {
+										"value": {
+											"value": "@item().dataSourceId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"dataProcessId": {
+										"value": {
+											"value": "@coalesce(null)",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"executionLogSubject": {
+										"value": {
+											"value": "Start of inner activity for pipeline: @{pipeline().Pipeline}",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"executionLogMessage": {
+										"value": "Started copying objects and converting to delta tables",
+										"type": "String"
+									},
+									"DataFactoryName": {
+										"value": {
+											"value": "@pipeline().DataFactory",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"PipelineName": {
+										"value": {
+											"value": "@pipeline().Pipeline",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"PipelineRunID": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"PipelineTriggerID": {
+										"value": {
+											"value": "@pipeline().TriggerId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"PipelineTriggerName": {
+										"value": {
+											"value": "@pipeline().TriggerName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"PipelineTriggerTimestamp": {
+										"value": {
+											"value": "@pipeline().TriggerTime",
+											"type": "Expression"
+										},
+										"type": "DateTime"
+									},
+									"PipelineTriggerType": {
+										"value": {
+											"value": "@pipeline().TriggerType",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"executionTimestamp": {
+										"value": {
+											"value": "@utcnow('yyyy-MM-dd HH:mm:ss')",
+											"type": "Expression"
+										},
+										"type": "DateTime"
+									},
+									"IsStart": {
+										"value": "true",
+										"type": "Boolean"
+									},
+									"IsEnd": {
+										"value": "false",
+										"type": "Boolean"
+									},
+									"IsError": {
+										"value": "false",
+										"type": "Boolean"
+									},
+									"IsInnerActivity": {
+										"value": "true",
+										"type": "Boolean"
+									},
+									"IsIncremental": {
+										"value": {
+											"value": "@coalesce(null)",
+											"type": "Expression"
+										},
+										"type": "Boolean"
+									},
+									"ObjectName": {
+										"value": {
+											"value": "@item().objectName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"ObjectSchema": {
+										"value": {
+											"value": "@item().objectSchema",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "lsAsqlManagedIdentity",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"connectionString": "sec-metadata-db-connection-string"
+								}
+							}
+						},
+						{
+							"name": "log item end",
+							"description": "end item logging",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "update metadata",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.00:05:00",
+								"retry": 3,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[adf].[uspLogExecutionMessage]",
+								"storedProcedureParameters": {
+									"dataSourceId": {
+										"value": {
+											"value": "@item().dataSourceId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"dataProcessId": {
+										"value": {
+											"value": "@coalesce(null)",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"executionLogSubject": {
+										"value": {
+											"value": "End of inner activity for pipeline: @{pipeline().Pipeline}",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"executionLogMessage": {
+										"value": "Ended copying objects and converting to delta tables",
+										"type": "String"
+									},
+									"dataFactoryName": {
+										"value": {
+											"value": "@pipeline().DataFactory",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipelineName": {
+										"value": {
+											"value": "@pipeline().Pipeline",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipelineRunID": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipelineTriggerID": {
+										"value": {
+											"value": "@pipeline().TriggerId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipelineTriggerName": {
+										"value": {
+											"value": "@pipeline().TriggerName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipelineTriggerTimestamp": {
+										"value": {
+											"value": "@pipeline().TriggerTime",
+											"type": "Expression"
+										},
+										"type": "DateTime"
+									},
+									"pipelineTriggerType": {
+										"value": {
+											"value": "@pipeline().TriggerType",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"executionTimestamp": {
+										"value": {
+											"value": "@utcnow('yyyy-MM-dd HH:mm:ss')",
+											"type": "Expression"
+										},
+										"type": "DateTime"
+									},
+									"isStart": {
+										"value": "false",
+										"type": "Boolean"
+									},
+									"isEnd": {
+										"value": "true",
+										"type": "Boolean"
+									},
+									"isError": {
+										"value": "false",
+										"type": "Boolean"
+									},
+									"isInnerActivity": {
+										"value": "true",
+										"type": "Boolean"
+									},
+									"isIncremental": {
+										"value": "false",
+										"type": "Boolean"
+									},
+									"objectName": {
+										"value": {
+											"value": "@item().objectName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"objectSchema": {
+										"value": {
+											"value": "@item().objectSchema",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "lsAsqlManagedIdentity",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"connectionString": "sec-metadata-db-connection-string"
+								}
+							}
+						},
+						{
+							"name": "error notification 4",
+							"description": "log error and notify users if notifications are enabled",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "write to delta table",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "plLogMsgAndSendEmail",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"metadataConnectionString": "sec-metadata-db-connection-string",
+									"emailEnabled": {
+										"value": "@pipeline().parameters.isEmailNotificationEnabled",
+										"type": "Expression"
+									},
+									"emailNotificationSendToAddress": {
+										"value": "@pipeline().parameters.emailNotificationSendToAddress",
+										"type": "Expression"
+									},
+									"emailImportance": "High",
+									"emailSubject": {
+										"value": "Notebook Failure: @{pipeline().Pipeline}",
+										"type": "Expression"
+									},
+									"emailMessage": {
+										"value": "<b>Notebook:</b> /data_engineering/Source2Raw/Source2RawIncrementalLoad\n<br><b>ObjectSchema: </b> @{coalesce(item().ObjectSchema, '')}\n<br><b>ObjectName: </b> @{item().ObjectName}\n<br><b>Error Code: </b> @{activity('write to delta table').error.errorCode}\n\n<br><b>Message:</b> @{activity('write to delta table').error.message}",
+										"type": "Expression"
+									},
+									"emailColor": "Red",
+									"executionLogSubject": {
+										"value": "End of inner activity for pipeline: @{pipeline().Pipeline}",
+										"type": "Expression"
+									},
+									"executionLogMessage": {
+										"value": "FAILURE: Notebook Failure: /data_engineering/Source2Raw/Source2RawIncrementalLoad\nError Code: @{activity('write to delta table').error.errorCode}\nMessage: @{activity('write to delta table').error.message}",
+										"type": "Expression"
+									},
+									"dataFactoryName": {
+										"value": "@pipeline().DataFactory",
+										"type": "Expression"
+									},
+									"pipelineName": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"pipelineRunID": {
+										"value": "@pipeline().RunId",
+										"type": "Expression"
+									},
+									"pipelineTriggerID": {
+										"value": "@pipeline().TriggerId",
+										"type": "Expression"
+									},
+									"pipelineTriggerName": {
+										"value": "@pipeline().TriggerId",
+										"type": "Expression"
+									},
+									"pipelineTriggerTimestamp": {
+										"value": "@pipeline().TriggerTime",
+										"type": "Expression"
+									},
+									"pipelineTriggerType": {
+										"value": "@pipeline().TriggerType",
+										"type": "Expression"
+									},
+									"executionTimestamp": {
+										"value": "@utcnow('yyyy-MM-dd HH:mm:ss')",
+										"type": "Expression"
+									},
+									"isStart": "false",
+									"isEnd": "false",
+									"isError": "true",
+									"isInnerActivity": "true",
+									"isIncremental": "false",
+									"objectName": {
+										"value": "@item().objectName",
+										"type": "Expression"
+									},
+									"objectSchema": {
+										"value": "@item().objectSchema",
+										"type": "Expression"
+									},
+									"dataSourceId": {
+										"value": "@item().dataSourceId",
+										"type": "Expression"
+									},
+									"dataProcessId": {
+										"value": "@coalesce(null)",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "copy data",
+							"description": "copy tables to raw parquet",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "log item start",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.06:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"additionalColumns": [
+										{
+											"name": "etl_raw_timestamp",
+											"value": {
+												"value": "@variables('utcTimestamp')",
+												"type": "Expression"
+											}
+										},
+										{
+											"name": "etl_datasource_name",
+											"value": {
+												"value": "@item().dataSourceName",
+												"type": "Expression"
+											}
+										},
+										{
+											"name": "etl_source_file_name",
+											"value": {
+												"value": "$$FILENAME",
+												"type": "Expression"
+											}
+										}
+									],
+									"storeSettings": {
+										"type": "SftpReadSettings",
+										"recursive": false,
+										"wildcardFolderPath": {
+											"value": "@replace(variables('environment_path'),'/','\\')",
+											"type": "Expression"
+										},
+										"wildcardFileName": {
+											"value": "@{concat(replace(item().objectName,'_',''),'_')}*.txt",
+											"type": "Expression"
+										},
+										"enablePartitionDiscovery": false,
+										"disableChunking": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings",
+										"copyBehavior": "MergeFiles"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"parallelCopies": 5,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "dsSecureFileSystemUserNameCsvClue",
+									"type": "DatasetReference",
+									"parameters": {
+										"host": "secureftp.sundt.com",
+										"userName": "clueintegrations",
+										"connectionSecretName": "sec-clue-sftp-export",
+										"directory": {
+											"value": "@variables('environment_path')",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "dsAdlsManagedIdentityCsv",
+									"type": "DatasetReference",
+									"parameters": {
+										"container": "raw",
+										"folderPath": "@{item().dataSourceName}/@{item().objectName}/@{formatDateTime(variables('localTimestamp'), 'yyyy')}/@{formatDateTime(variables('localTimestamp'), 'MM')}/@{formatDateTime(variables('localTimestamp'), 'dd')}",
+										"fileName": "@{item().objectName}-@{variables('localTimestamp')}.csv"
+									}
+								}
+							]
+						},
+						{
+							"name": "log operation metrics",
+							"description": "log the output operation metrics ",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "write to delta table",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.00:05:00",
+								"retry": 3,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[adf].[uspLogOperationMetric]",
+								"storedProcedureParameters": {
+									"deltaTableUpsertNumberSourceRows": {
+										"value": {
+											"value": "@activity('write to delta table').output.runOutput.numSourceRows",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"deltaTableUpsertNumberTargetRowsInserted": {
+										"value": {
+											"value": "@activity('write to delta table').output.runOutput.targetRowsInserted",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"deltaTableUpsertNumberTargetRowsUpdated": {
+										"value": {
+											"value": "@activity('write to delta table').output.runOutput.targetRowsUpdated",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"deltaTableInsertNumberOutputRows": {
+										"value": {
+											"value": "@activity('write to delta table').output.runOutput.numOutputRows",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"copyActivityRowsRead": {
+										"value": {
+											"value": "@activity('copy data').output?.rowsRead",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"copyActivityRowsWritten": {
+										"value": {
+											"value": "@activity('copy data').output?.rowsWritten",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"copyActivityObjectsRead": {
+										"value": {
+											"value": "@activity('copy data').output?.rowsRead",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"copyActivityCopyDuration": {
+										"value": {
+											"value": "@activity('copy data').output?.copyDuration",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"copyActivityThroughput": {
+										"value": {
+											"value": "@activity('copy data').output?.throughput",
+											"type": "Expression"
+										},
+										"type": "Decimal"
+									},
+									"objectSchema": {
+										"value": {
+											"value": "@item().objectSchema",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"objectName": {
+										"value": {
+											"value": "@item().objectName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"isIncremental": {
+										"value": {
+											"value": "@item().isIncremental",
+											"type": "Expression"
+										},
+										"type": "Boolean"
+									},
+									"pipelineRunId": {
+										"value": {
+											"value": "@pipeline().RunId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipelineName": {
+										"value": {
+											"value": "@pipeline().Pipeline",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipelineTriggerId": {
+										"value": {
+											"value": "@pipeline().TriggerId",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipelineTriggerName": {
+										"value": {
+											"value": "@pipeline().TriggerName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipelineTriggerTimestamp": {
+										"value": {
+											"value": "@pipeline().TriggerTime",
+											"type": "Expression"
+										},
+										"type": "Datetime"
+									},
+									"pipelineTriggerType": {
+										"value": {
+											"value": "@pipeline().TriggerType",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"executionTimestamp": {
+										"value": {
+											"value": "@utcnow('yyyy-MM-dd HH:mm:ss')",
+											"type": "Expression"
+										},
+										"type": "Datetime"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "lsAsqlManagedIdentity",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"connectionString": "sec-metadata-db-connection-string"
+								}
+							}
+						},
+						{
+							"name": "row count validation and notification",
+							"description": "notify users if row counts don't match",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "log operation metrics",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "plRowCountValidateSendEmail",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"metadataConnectionString": "sec-metadata-db-connection-string",
+									"emailEnabled": {
+										"value": "@pipeline().parameters.isEmailNotificationEnabled",
+										"type": "Expression"
+									},
+									"emailNotificationSendToAddress": {
+										"value": "@pipeline().parameters.emailNotificationSendToAddress",
+										"type": "Expression"
+									},
+									"emailImportance": "High",
+									"emailSubject": {
+										"value": "DATA INGESTION WARNING: @{pipeline().Pipeline}",
+										"type": "Expression"
+									},
+									"emailMessage": {
+										"value": "<b>Row count validation failed</b>\n<b>Data Source Name:</b> @{item().dataSourceName}\n<b>Object Schema:</b> @{item().objectSchema}\n<b>Object Name:</b> @{item().objectName}\n<b>Is Incremental Load?:</b> @{item().isIncremental}\n<b>Rows Read from Source:</b> @{activity('copy data').output?.rowsRead}\n<b>Rows Inserted:</b> @{activity('write to delta table').output.runOutput.numOutputRows}\n",
+										"type": "Expression"
+									},
+									"emailColor": "Red",
+									"dataFactoryName": {
+										"value": "@pipeline().DataFactory",
+										"type": "Expression"
+									},
+									"pipelineName": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"pipelineRunID": {
+										"value": "@pipeline().RunId",
+										"type": "Expression"
+									},
+									"isIncremental": {
+										"value": "@item().isIncremental",
+										"type": "Expression"
+									},
+									"objectName": {
+										"value": "@item().objectName",
+										"type": "Expression"
+									},
+									"objectSchema": {
+										"value": "@item().objectSchema",
+										"type": "Expression"
+									},
+									"dataSourceId": {
+										"value": "@item().dataSourceId",
+										"type": "Expression"
+									},
+									"dataProcessId": {
+										"value": "@coalesce(null)",
+										"type": "Expression"
+									},
+									"rowCountRead": {
+										"value": "@activity('copy data').output?.rowsRead",
+										"type": "Expression"
+									},
+									"rowCountInsertedAndUpdated": {
+										"value": "@activity('write to delta table').output.runOutput.numOutputRows",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "if file had zero rows",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "copy data",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@equals(activity('copy data').output.dataRead, 0)",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "throw an error",
+										"type": "WebActivity",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.01:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"method": "POST",
+											"url": "https://ThrowAnError ",
+											"connectVia": {
+												"referenceName": "AutoResolveIntegrationRuntime",
+												"type": "IntegrationRuntimeReference"
+											},
+											"body": "Fail"
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "error notification 5_copy1",
+							"description": "log error and notify users if notifications are enabled",
+							"type": "ExecutePipeline",
+							"dependsOn": [
+								{
+									"activity": "if file had zero rows",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "plLogMsgAndSendEmail",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"metadataConnectionString": "sec-metadata-db-connection-string",
+									"emailEnabled": {
+										"value": "@pipeline().parameters.isEmailNotificationEnabled",
+										"type": "Expression"
+									},
+									"emailNotificationSendToAddress": {
+										"value": "@pipeline().parameters.emailNotificationSendToAddress",
+										"type": "Expression"
+									},
+									"emailImportance": "High",
+									"emailSubject": {
+										"value": "Notebook Failure: @{pipeline().Pipeline}",
+										"type": "Expression"
+									},
+									"emailMessage": {
+										"value": "The clue file for @{item().objectName} had zero rows, therefore the file probably did not exist.",
+										"type": "Expression"
+									},
+									"emailColor": "Red",
+									"executionLogSubject": {
+										"value": "End of inner activity for pipeline: @{pipeline().Pipeline}",
+										"type": "Expression"
+									},
+									"executionLogMessage": {
+										"value": "The clue file for @{item().objectName} had zero rows, therefore the file probably did not exist.",
+										"type": "Expression"
+									},
+									"dataFactoryName": {
+										"value": "@pipeline().DataFactory",
+										"type": "Expression"
+									},
+									"pipelineName": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
+									"pipelineRunID": {
+										"value": "@pipeline().RunId",
+										"type": "Expression"
+									},
+									"pipelineTriggerID": {
+										"value": "@pipeline().TriggerId",
+										"type": "Expression"
+									},
+									"pipelineTriggerName": {
+										"value": "@pipeline().TriggerId",
+										"type": "Expression"
+									},
+									"pipelineTriggerTimestamp": {
+										"value": "@pipeline().TriggerTime",
+										"type": "Expression"
+									},
+									"pipelineTriggerType": {
+										"value": "@pipeline().TriggerType",
+										"type": "Expression"
+									},
+									"executionTimestamp": {
+										"value": "@utcnow('yyyy-MM-dd HH:mm:ss')",
+										"type": "Expression"
+									},
+									"isStart": "false",
+									"isEnd": "false",
+									"isError": "true",
+									"isInnerActivity": "true",
+									"isIncremental": "false",
+									"objectName": {
+										"value": "@item().objectName",
+										"type": "Expression"
+									},
+									"objectSchema": {
+										"value": "@item().objectSchema",
+										"type": "Expression"
+									},
+									"dataSourceId": {
+										"value": "@item().dataSourceId",
+										"type": "Expression"
+									},
+									"dataProcessId": {
+										"value": "@coalesce(null)",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "error notification 1",
+				"description": "notify users ",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "lookup objects",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plLogMsgAndSendEmail",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"metadataConnectionString": "sec-metadata-db-connection-string",
+						"emailEnabled": {
+							"value": "@pipeline().parameters.isEmailNotificationEnabled",
+							"type": "Expression"
+						},
+						"emailNotificationSendToAddress": {
+							"value": "@pipeline().parameters.emailNotificationSendToAddress",
+							"type": "Expression"
+						},
+						"emailImportance": "High",
+						"emailSubject": {
+							"value": "FAILURE: @{pipeline().Pipeline} Lookup Activity Failure",
+							"type": "Expression"
+						},
+						"emailMessage": {
+							"value": "<b>Error Code: </b>@{activity('lookup objects').error.errorCode}\n<br>\n<b>Message: </b>@{activity('lookup objects').error.message}",
+							"type": "Expression"
+						},
+						"emailColor": "Red",
+						"executionLogSubject": {
+							"value": "Error during pipeline: @{pipeline().Pipeline}",
+							"type": "Expression"
+						},
+						"executionLogMessage": "There was an error on the lookup activity of the pipeline",
+						"dataFactoryName": {
+							"value": "@pipeline().DataFactory",
+							"type": "Expression"
+						},
+						"pipelineName": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"pipelineRunID": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"pipelineTriggerID": {
+							"value": "@pipeline().TriggerId",
+							"type": "Expression"
+						},
+						"pipelineTriggerName": {
+							"value": "@pipeline().TriggerName",
+							"type": "Expression"
+						},
+						"pipelineTriggerTimestamp": {
+							"value": "@pipeline().TriggerTime",
+							"type": "Expression"
+						},
+						"pipelineTriggerType": {
+							"value": "@pipeline().TriggerType",
+							"type": "Expression"
+						},
+						"executionTimestamp": {
+							"value": "@{utcnow('yyyy-MM-dd hh:mm:ss')}",
+							"type": "Expression"
+						},
+						"isStart": "false",
+						"isEnd": "false",
+						"isError": "true",
+						"isInnerActivity": "false",
+						"isIncremental": "false",
+						"objectName": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						},
+						"objectSchema": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						},
+						"dataSourceId": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						},
+						"dataProcessId": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "set utc timestamp",
+				"description": "set the UTC timestamp which will be later used as part of the downloaded filenames",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "utcTimestamp",
+					"value": {
+						"value": "@{utcnow('yyyy-MM-dd hh:mm:ss')}",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "log pipeline end",
+				"description": "log pipeline end",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Archive source files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:05:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[adf].[uspLogExecutionMessage]",
+					"storedProcedureParameters": {
+						"dataSourceId": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"dataProcessId": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Int64"
+						},
+						"executionLogSubject": {
+							"value": {
+								"value": "End of pipeline: @{pipeline().Pipeline}",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"executionLogMessage": {
+							"value": "This is the end of the pipeline",
+							"type": "String"
+						},
+						"dataFactoryName": {
+							"value": {
+								"value": "@pipeline().DataFactory",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineName": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineRunID": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerID": {
+							"value": {
+								"value": "@pipeline().TriggerId",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerName": {
+							"value": {
+								"value": "@pipeline().TriggerName",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"pipelineTriggerTimestamp": {
+							"value": {
+								"value": "@pipeline().TriggerTime",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"pipelineTriggerType": {
+							"value": {
+								"value": "@pipeline().TriggerType",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"executionTimestamp": {
+							"value": {
+								"value": "@utcnow('yyyy-MM-dd HH:mm:ss')",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"isStart": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isEnd": {
+							"value": "true",
+							"type": "Boolean"
+						},
+						"isError": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isInnerActivity": {
+							"value": "false",
+							"type": "Boolean"
+						},
+						"isIncremental": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "Boolean"
+						},
+						"objectName": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"objectSchema": {
+							"value": {
+								"value": "@coalesce(null)",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "lsAsqlManagedIdentity",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"connectionString": "sec-metadata-db-connection-string"
+					}
+				}
+			},
+			{
+				"name": "set local timestamp",
+				"description": "set the UTC timestamp which will be later used as part of the downloaded filenames",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "localTimestamp",
+					"value": {
+						"value": "@convertTimeZone(utcnow(), 'UTC', 'Pacific Standard Time', 'yyyy-MM-dd HH:mm:ss')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "success notification",
+				"description": "notify users ",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "log pipeline end",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plLogMsgAndSendEmail",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"metadataConnectionString": "sec-metadata-db-connection-string",
+						"emailEnabled": {
+							"value": "@pipeline().parameters.isEmailNotificationEnabled",
+							"type": "Expression"
+						},
+						"emailNotificationSendToAddress": {
+							"value": "@pipeline().parameters.emailNotificationSendToAddress",
+							"type": "Expression"
+						},
+						"emailImportance": "Low",
+						"emailSubject": {
+							"value": "SUCCESS: @{pipeline().Pipeline}",
+							"type": "Expression"
+						},
+						"emailMessage": {
+							"value": "The pipeline @{pipeline().Pipeline} finished successfully",
+							"type": "Expression"
+						},
+						"emailColor": "Green",
+						"executionLogSubject": {
+							"value": "Successful pipeline execution: @{pipeline().Pipeline}",
+							"type": "Expression"
+						},
+						"executionLogMessage": {
+							"value": "The pipeline @{pipeline().Pipeline} finished successfully",
+							"type": "Expression"
+						},
+						"dataFactoryName": {
+							"value": "@pipeline().DataFactory",
+							"type": "Expression"
+						},
+						"pipelineName": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"pipelineRunID": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"pipelineTriggerID": {
+							"value": "@pipeline().TriggerId",
+							"type": "Expression"
+						},
+						"pipelineTriggerName": {
+							"value": "@pipeline().TriggerName",
+							"type": "Expression"
+						},
+						"pipelineTriggerTimestamp": {
+							"value": "@pipeline().TriggerTime",
+							"type": "Expression"
+						},
+						"pipelineTriggerType": {
+							"value": "@pipeline().TriggerType",
+							"type": "Expression"
+						},
+						"executionTimestamp": {
+							"value": "@{utcnow('yyyyMMddTHH:mm:ss')}",
+							"type": "Expression"
+						},
+						"isStart": "false",
+						"isEnd": "true",
+						"isError": "false",
+						"isInnerActivity": "false",
+						"isIncremental": "false",
+						"objectName": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						},
+						"objectSchema": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "error notification 2",
+				"description": "log error and notify users if notifications are enabled",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "for each object",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plLogMsgAndSendEmail",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"metadataConnectionString": "sec-metadata-db-connection-string",
+						"emailEnabled": {
+							"value": "@pipeline().parameters.isEmailNotificationEnabled",
+							"type": "Expression"
+						},
+						"emailNotificationSendToAddress": {
+							"value": "@pipeline().parameters.emailNotificationSendToAddress",
+							"type": "Expression"
+						},
+						"emailImportance": "High",
+						"emailSubject": {
+							"value": "FAILURE: Error during pipeline: @{pipeline().Pipeline}",
+							"type": "Expression"
+						},
+						"emailMessage": {
+							"value": "There was an error during the ForEach activity of the pipeline @{pipeline().Pipeline}",
+							"type": "Expression"
+						},
+						"emailColor": "Red",
+						"executionLogSubject": {
+							"value": "Error during pipeline: @{pipeline().Pipeline}",
+							"type": "Expression"
+						},
+						"executionLogMessage": {
+							"value": "There was an error during the ForEach activity of the pipeline @{pipeline().Pipeline}",
+							"type": "Expression"
+						},
+						"dataFactoryName": {
+							"value": "@pipeline().DataFactory",
+							"type": "Expression"
+						},
+						"pipelineName": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"pipelineRunID": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"pipelineTriggerID": {
+							"value": "@pipeline().TriggerId",
+							"type": "Expression"
+						},
+						"pipelineTriggerName": {
+							"value": "@pipeline().TriggerName",
+							"type": "Expression"
+						},
+						"pipelineTriggerTimestamp": {
+							"value": "@pipeline().TriggerTime",
+							"type": "Expression"
+						},
+						"pipelineTriggerType": {
+							"value": "@pipeline().TriggerType",
+							"type": "Expression"
+						},
+						"executionTimestamp": {
+							"value": "@{utcnow('yyyy-MM-dd HH:mm:ss')}",
+							"type": "Expression"
+						},
+						"isStart": "false",
+						"isEnd": "false",
+						"isError": "true",
+						"isInnerActivity": "false",
+						"isIncremental": "false",
+						"objectName": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						},
+						"objectSchema": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						},
+						"dataSourceId": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						},
+						"dataProcessId": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Archive source files",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "for each object",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plSourceArchiveClueAll",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"enviroment_path": {
+							"value": "@variables('environment_path')",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "error notification 2_copy1",
+				"description": "log error and notify users if notifications are enabled",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Archive source files",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "plLogMsgAndSendEmail",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"metadataConnectionString": "sec-metadata-db-connection-string",
+						"emailEnabled": {
+							"value": "@pipeline().parameters.isEmailNotificationEnabled",
+							"type": "Expression"
+						},
+						"emailNotificationSendToAddress": {
+							"value": "@pipeline().parameters.emailNotificationSendToAddress",
+							"type": "Expression"
+						},
+						"emailImportance": "High",
+						"emailSubject": {
+							"value": "FAILURE: Error during pipeline: @{pipeline().Pipeline}",
+							"type": "Expression"
+						},
+						"emailMessage": {
+							"value": "There was an error during the ForEach activity of the pipeline @{pipeline().Pipeline}",
+							"type": "Expression"
+						},
+						"emailColor": "Red",
+						"executionLogSubject": {
+							"value": "Error during pipeline: @{pipeline().Pipeline}",
+							"type": "Expression"
+						},
+						"executionLogMessage": {
+							"value": "There was an error during the ForEach activity of the pipeline @{pipeline().Pipeline}",
+							"type": "Expression"
+						},
+						"dataFactoryName": {
+							"value": "@pipeline().DataFactory",
+							"type": "Expression"
+						},
+						"pipelineName": {
+							"value": "@pipeline().Pipeline",
+							"type": "Expression"
+						},
+						"pipelineRunID": {
+							"value": "@pipeline().RunId",
+							"type": "Expression"
+						},
+						"pipelineTriggerID": {
+							"value": "@pipeline().TriggerId",
+							"type": "Expression"
+						},
+						"pipelineTriggerName": {
+							"value": "@pipeline().TriggerName",
+							"type": "Expression"
+						},
+						"pipelineTriggerTimestamp": {
+							"value": "@pipeline().TriggerTime",
+							"type": "Expression"
+						},
+						"pipelineTriggerType": {
+							"value": "@pipeline().TriggerType",
+							"type": "Expression"
+						},
+						"executionTimestamp": {
+							"value": "@{utcnow('yyyy-MM-dd HH:mm:ss')}",
+							"type": "Expression"
+						},
+						"isStart": "false",
+						"isEnd": "false",
+						"isError": "true",
+						"isInnerActivity": "false",
+						"isIncremental": "false",
+						"objectName": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						},
+						"objectSchema": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						},
+						"dataSourceId": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						},
+						"dataProcessId": {
+							"value": "@coalesce(null)",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Switch1",
+				"type": "Switch",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"on": {
+						"value": "@substring(pipeline().DataFactory,add(indexof(pipeline().DataFactory,'2023-'),5),4)",
+						"type": "Expression"
+					},
+					"cases": [
+						{
+							"value": "test",
+							"activities": [
+								{
+									"name": "Set ENV_TEST",
+									"description": "set value for the environment_path variable",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"policy": {
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "environment_path",
+										"value": "/IN/TEST"
+									}
+								},
+								{
+									"name": "Execute plCopyClue_copy1",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"policy": {
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "plCopyClue",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"objectName": {
+												"value": "@pipeline().parameters.objectName",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						},
+						{
+							"value": "prod",
+							"activities": [
+								{
+									"name": "Set ENV_PROD",
+									"description": "set value for the environment path variable",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"policy": {
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "environment_path",
+										"value": "/IN"
+									}
+								}
+							]
+						}
+					],
+					"defaultActivities": [
+						{
+							"name": "Set ENV_DEV",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "environment_path",
+								"value": "/IN/DEV"
+							}
+						},
+						{
+							"name": "Execute plCopyClue",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "plCopyClue",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"objectName": {
+										"value": "@pipeline().parameters.objectName",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"dataSourceName": {
+				"type": "string",
+				"defaultValue": "clue"
+			},
+			"batchGroup": {
+				"type": "string",
+				"defaultValue": "-"
+			},
+			"objectSchema": {
+				"type": "string",
+				"defaultValue": "-"
+			},
+			"objectName": {
+				"type": "string",
+				"defaultValue": "-"
+			},
+			"isEmailNotificationEnabled": {
+				"type": "string",
+				"defaultValue": "true"
+			},
+			"emailNotificationSendToAddress": {
+				"type": "string"
+			},
+			"debug": {
+				"type": "string",
+				"defaultValue": "false"
+			}
+		},
+		"variables": {
+			"isError": {
+				"type": "Boolean"
+			},
+			"metadataConnectionString": {
+				"type": "String",
+				"defaultValue": "sec-metadata-db-connection-string"
+			},
+			"localTimestamp": {
+				"type": "String"
+			},
+			"utcTimestamp": {
+				"type": "String"
+			},
+			"environment_path": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "100_sourceToBronze/FileSystem"
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-07-20T18:43:03Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

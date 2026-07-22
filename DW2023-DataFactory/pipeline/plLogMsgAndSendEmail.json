@@ -1,0 +1,422 @@
+{
+	"name": "plLogMsgAndSendEmail",
+	"properties": {
+		"description": "Log execution status and send an email to admins",
+		"activities": [
+			{
+				"name": "log error if true",
+				"description": "This is an error, please log it",
+				"type": "IfCondition",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@bool(pipeline().parameters.IsError)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "log error",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.01:00:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[adf].[uspLogExecutionMessage]",
+								"storedProcedureParameters": {
+									"dataSourceId": {
+										"value": {
+											"value": "@pipeline().parameters.dataSourceId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"dataProcessId": {
+										"value": {
+											"value": "@pipeline().parameters.dataProcessId",
+											"type": "Expression"
+										},
+										"type": "Int64"
+									},
+									"executionLogSubject": {
+										"value": {
+											"value": "@pipeline().parameters.executionLogSubject",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"dataFactoryName": {
+										"value": {
+											"value": "@pipeline().DataFactory",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"executionLogMessage": {
+										"value": {
+											"value": "@pipeline().parameters.executionLogMessage",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipelineName": {
+										"value": {
+											"value": "@pipeline().parameters.pipelineName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipelineRunID": {
+										"value": {
+											"value": "@pipeline().parameters.pipelineRunID",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipelineTriggerID": {
+										"value": {
+											"value": "@pipeline().parameters.pipelineTriggerID",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipelineTriggerName": {
+										"value": {
+											"value": "@pipeline().parameters.pipelineTriggerName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"pipelineTriggerTimestamp": {
+										"value": {
+											"value": "@pipeline().parameters.pipelineTriggerTimestamp",
+											"type": "Expression"
+										},
+										"type": "DateTime"
+									},
+									"pipelineTriggerType": {
+										"value": {
+											"value": "@pipeline().parameters.pipelineTriggerType",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"executionTimestamp": {
+										"value": {
+											"value": "@pipeline().parameters.executionTimestamp",
+											"type": "Expression"
+										},
+										"type": "DateTime"
+									},
+									"isEnd": {
+										"value": {
+											"value": "@pipeline().parameters.isEnd",
+											"type": "Expression"
+										},
+										"type": "Boolean"
+									},
+									"isError": {
+										"value": {
+											"value": "@pipeline().parameters.isError",
+											"type": "Expression"
+										},
+										"type": "Boolean"
+									},
+									"isIncremental": {
+										"value": {
+											"value": "@pipeline().parameters.isIncremental",
+											"type": "Expression"
+										},
+										"type": "Boolean"
+									},
+									"isInnerActivity": {
+										"value": {
+											"value": "@pipeline().parameters.isInnerActivity",
+											"type": "Expression"
+										},
+										"type": "Boolean"
+									},
+									"isStart": {
+										"value": {
+											"value": "@pipeline().parameters.isStart",
+											"type": "Expression"
+										},
+										"type": "Boolean"
+									},
+									"objectName": {
+										"value": {
+											"value": "@pipeline().parameters.objectName",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"objectSchema": {
+										"value": {
+											"value": "@pipeline().parameters.objectSchema",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "lsAsqlManagedIdentity",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"connectionString": "sec-metadata-db-connection-string"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "send email if true",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "log error if true",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@bool(pipeline().parameters.EmailEnabled)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "lookup logic app",
+							"description": "Lookup the logic app url",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.00:05:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderQuery": "SELECT *\nFROM adf.azureResources\nWHERE resourceType = 'Logic App'\nAND resourceSubType = 'Email Notification'",
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "dsAsqlManagedIdentity",
+									"type": "DatasetReference",
+									"parameters": {
+										"connectionString": {
+											"value": "@variables('connectionString')",
+											"type": "Expression"
+										},
+										"schema": "-",
+										"tableName": "-"
+									}
+								},
+								"firstRowOnly": true
+							}
+						},
+						{
+							"name": "call logic app",
+							"description": "This logic app sends an email to selected individuals if enabled",
+							"type": "WebActivity",
+							"dependsOn": [
+								{
+									"activity": "lookup logic app",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								},
+								{
+									"activity": "lookup data factory",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.00:05:00",
+								"retry": 1,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"url": {
+									"value": "@{activity('lookup logic app').output.firstRow.PropertyValue}",
+									"type": "Expression"
+								},
+								"connectVia": {
+									"referenceName": "AutoResolveIntegrationRuntime",
+									"type": "IntegrationRuntimeReference"
+								},
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/json"
+								},
+								"body": {
+									"value": "{\n  \"DataFactoryName\": \"@{pipeline().DataFactory}\",\n  \"EmailNotificationSendToAddress\": \"@{pipeline().parameters.emailNotificationSendToAddress}\",\n  \"EmailMessage\": \"https://adf.azure.com/en/monitoring/pipelineruns/@{pipeline().parameters.PipelineRunID}?factory=@{activity('lookup data factory').output.firstRow.resourceID}\",\n  \"PipelineName\": \"@{pipeline().parameters.PipelineName}\",\n  \"PipelineRunID\": \"@{pipeline().parameters.PipelineRunID}\",\n  \"EmailSubject\": \"@{pipeline().parameters.emailSubject}\",\n  \"EmailImportance\": \"@{pipeline().parameters.emailImportance}\",\n  \"EmailColor\": \"@{pipeline().parameters.emailColor}\"\n}",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "lookup data factory",
+							"description": "Lookup the data factory url",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.00:05:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderQuery": "SELECT *\nFROM adf.azureResources\nWHERE resourceType = 'Azure Data Factory'\nAND resourceSubType IS NULL",
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "dsAsqlManagedIdentity",
+									"type": "DatasetReference",
+									"parameters": {
+										"connectionString": {
+											"value": "@variables('connectionString')",
+											"type": "Expression"
+										},
+										"schema": "-",
+										"tableName": "-"
+									}
+								},
+								"firstRowOnly": true
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"metadataConnectionString": {
+				"type": "string",
+				"defaultValue": "sec-metadata-db-connection-string"
+			},
+			"emailEnabled": {
+				"type": "string"
+			},
+			"emailNotificationSendToAddress": {
+				"type": "string"
+			},
+			"emailImportance": {
+				"type": "string"
+			},
+			"emailSubject": {
+				"type": "string"
+			},
+			"emailMessage": {
+				"type": "string"
+			},
+			"emailColor": {
+				"type": "string"
+			},
+			"executionLogSubject": {
+				"type": "String"
+			},
+			"executionLogMessage": {
+				"type": "String"
+			},
+			"dataFactoryName": {
+				"type": "string"
+			},
+			"pipelineName": {
+				"type": "string"
+			},
+			"pipelineRunID": {
+				"type": "string"
+			},
+			"pipelineTriggerID": {
+				"type": "String"
+			},
+			"pipelineTriggerName": {
+				"type": "String"
+			},
+			"pipelineTriggerTimestamp": {
+				"type": "string"
+			},
+			"pipelineTriggerType": {
+				"type": "String"
+			},
+			"executionTimestamp": {
+				"type": "string"
+			},
+			"isStart": {
+				"type": "string"
+			},
+			"isEnd": {
+				"type": "string"
+			},
+			"isError": {
+				"type": "string"
+			},
+			"isInnerActivity": {
+				"type": "string"
+			},
+			"isIncremental": {
+				"type": "string"
+			},
+			"objectName": {
+				"type": "String"
+			},
+			"objectSchema": {
+				"type": "String"
+			},
+			"dataSourceId": {
+				"type": "string"
+			},
+			"dataProcessId": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"connectionString": {
+				"type": "String",
+				"defaultValue": "sec-metadata-db-connection-string"
+			},
+			"subscriptionId": {
+				"type": "String"
+			},
+			"resourceGroupName": {
+				"type": "String"
+			},
+			"messageCardString": {
+				"type": "String"
+			},
+			"teamsWebhook": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "000_logAndEmail"
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-07-20T18:43:02Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

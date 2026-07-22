@@ -1,0 +1,38 @@
+{
+	"name": "PROD_INEIGHT_DOCS_PM",
+	"properties": {
+		"description": "Second run of the day",
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "plSourceToGoldIneightDocument",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"isEmailNotificationEnabled": "true",
+					"emailNotificationSendToAddress": "Azure-DataWarehouse-Alerts@sundt.com",
+					"batchGroup": "daily"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2025-10-21T00:00:00",
+				"timeZone": "US Mountain Standard Time",
+				"schedule": {
+					"minutes": [
+						0
+					],
+					"hours": [
+						13
+					]
+				}
+			}
+		}
+	}
+}

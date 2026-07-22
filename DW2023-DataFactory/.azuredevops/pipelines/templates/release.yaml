@@ -1,0 +1,82 @@
+parameters:
+- name: displayName
+  default: ''
+- name: environment
+  default: ''
+- name: group
+  default: ''
+- name: azServicePrincipal
+  default: ''
+- name: azResourceGroup
+  default: ''
+- name: azDataFactory
+  default: ''
+- name: azDeploy
+  default: false
+
+jobs:
+- deployment:
+  displayName: ${{ parameters.displayName }}
+  environment: ${{ parameters.environment }}
+  variables:
+  - group: ${{ parameters.group }}
+  strategy:
+    runOnce:
+      deploy:
+        steps:
+        
+        - task: ExtractFiles@1
+          inputs:
+            archiveFilePatterns: '$(Pipeline.Workspace)/**/drop/*.zip'
+            destinationFolder: '$(Pipeline.Workspace)/_DataFactory'
+            cleanDestinationFolder: true
+            overwriteExistingFiles: false
+
+        - task: PowerShell@2
+          displayName: 'PowerShell Script - Update-LinkedServiceValues'
+          inputs:
+            targetType: filePath
+            filePath: '$(Pipeline.Workspace)/_DataFactory/scripts/Update-LinkedServiceValues.ps1'
+            arguments: '-keyvault_url $(keyvaultUrl) -sharedkeyvault_url $(sharedKeyVaultUrl) -sdatkeyvault_url $(sdatKeyVaultUrl) -databricks_url $(workspaceUrl) -databricks_clusterId $(clusterId) -databricks_resourceId $(resourceId) -databricks_nonisolation_clusterId $(nonIsolationClusterId) -datalake_url $(datalakeUrl) -powerbi_serviceprincipal_id $(powerBiServicePrincipalId) -default_directory $(Pipeline.Workspace)'
+
+        - task: liprec.vsts-publish-adf.toggle-adf-trigger.toggle-adf-trigger@2
+          displayName: 'Stop Triggers in ${{ parameters.azDataFactory }}'
+          inputs:
+            azureSubscription: ${{ parameters.azServicePrincipal }}
+            ResourceGroupName: ${{ parameters.azResourceGroup }}
+            DatafactoryName: ${{ parameters.azDataFactory }}
+            TriggerStatus: stop
+
+        - task: liprec.vsts-publish-adf.deploy-adf-json.deploy-adf-json@2
+          displayName: 'Deploy JSON files to ${{ parameters.azDataFactory }}'
+          inputs:
+            azureSubscription: ${{ parameters.azServicePrincipal }}
+            ResourceGroupName: ${{ parameters.azResourceGroup }}
+            DatafactoryName: ${{ parameters.azDataFactory }}
+            ServicePath: '$(Pipeline.Workspace)/_DataFactory/linkedService'
+            #DataflowPath: '$(Pipeline.Workspace)/_DataFactory/todo'
+            DatasetPath: '$(Pipeline.Workspace)/_DataFactory/dataset'
+            PipelinePath: '$(Pipeline.Workspace)/_DataFactory/pipeline'
+            TriggerPath: '$(Pipeline.Workspace)/_DataFactory/trigger'
+
+          # start test triggers if this is test
+        - task: liprec.vsts-publish-adf.toggle-adf-trigger.toggle-adf-trigger@2
+          condition: eq('${{ parameters.environment }}', 'DataFactory-Test')
+          displayName: 'Start Triggers in ${{ parameters.azDataFactory }}'
+          inputs:
+            azureSubscription: ${{ parameters.azServicePrincipal }}
+            ResourceGroupName: ${{ parameters.azResourceGroup }}
+            DatafactoryName: ${{ parameters.azDataFactory }}
+            TriggerFilter: '^TEST'            
+            TriggerStatus: start
+
+          # start prod triggers if this is prod
+        - task: liprec.vsts-publish-adf.toggle-adf-trigger.toggle-adf-trigger@2
+          condition: eq('${{ parameters.environment }}', 'DataFactory-Prod')
+          displayName: 'Start Triggers in ${{ parameters.azDataFactory }}'
+          inputs:
+            azureSubscription: ${{ parameters.azServicePrincipal }}
+            ResourceGroupName: ${{ parameters.azResourceGroup }}
+            DatafactoryName: ${{ parameters.azDataFactory }}
+            TriggerFilter: '^PROD'            
+            TriggerStatus: start            

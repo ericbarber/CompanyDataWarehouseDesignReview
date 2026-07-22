@@ -1,0 +1,32 @@
+{
+	"name": "lsSqlSqlAuth",
+	"properties": {
+		"description": "SQL Server linked service connection",
+		"parameters": {
+			"connectionString": {
+				"type": "string",
+				"defaultValue": "sec-e1-connection-string"
+			}
+		},
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"connectionString": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "lsKeyVaultManagedIdentity",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": {
+					"value": "@linkedService().connectionString",
+					"type": "Expression"
+				}
+			}
+		},
+		"connectVia": {
+			"referenceName": "selfHostedIntegrationRuntimeVm01",
+			"type": "IntegrationRuntimeReference"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/linkedservices"
+}

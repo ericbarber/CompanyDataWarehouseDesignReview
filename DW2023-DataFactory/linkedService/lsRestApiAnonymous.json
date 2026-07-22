@@ -1,0 +1,23 @@
+{
+	"name": "lsRestApiAnonymous",
+	"properties": {
+		"parameters": {
+			"baseURL": {
+				"type": "string",
+				"defaultValue": "https://graph.microsoft.com/v1"
+			}
+		},
+		"annotations": [],
+		"type": "RestService",
+		"typeProperties": {
+			"url": "@{linkedService().baseURL}",
+			"enableServerCertificateValidation": true,
+			"authenticationType": "Anonymous"
+		},
+		"connectVia": {
+			"referenceName": "AutoResolveIntegrationRuntime",
+			"type": "IntegrationRuntimeReference"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/linkedservices"
+}

@@ -1,0 +1,18 @@
+{
+	"name": "lsAdbNonIsolationClusterManagedIdentity",
+	"properties": {
+		"description": "Linked service to the non isolation cluster used for promoting delta tables",
+		"annotations": [],
+		"type": "AzureDatabricks",
+		"typeProperties": {
+			"domain": "https://adb-4725640684544100.0.azuredatabricks.net/?o=4725640684544100#",
+			"authentication": "MSI",
+			"workspaceResourceId": "/subscriptions/38256423-1d91-4c9d-a067-8b4226316604/resourceGroups/rg-dw2023-westus-dev/providers/Microsoft.Databricks/workspaces/dbw-dw2023-dev-sdt",
+			"existingClusterId": "0722-215701-3ftdctty"
+		},
+		"connectVia": {
+			"referenceName": "AutoResolveIntegrationRuntime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

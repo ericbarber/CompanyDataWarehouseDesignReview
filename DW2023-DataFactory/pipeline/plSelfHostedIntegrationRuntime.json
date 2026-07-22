@@ -1,0 +1,277 @@
+{
+	"name": "plSelfHostedIntegrationRuntime",
+	"properties": {
+		"description": "This pipeline is for Azure Virtual Machines that are used as self-hosted integration runtime(s). It will start or stop the Self-Hosted Integration runtime VM's based on the VM's current status and the command parameter (Start or Stop) in the pipeline. This pipeline is used as a cost-saving measure.",
+		"activities": [
+			{
+				"name": "Get VM metadata",
+				"description": "lookup to the adf.azureResources table in our metadata database and get the subscriptionId",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:05:00",
+					"retry": 2,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "SELECT \nTOP 1 *\n\nFROM adf.AzureResources\n\nWHERE  \nresourceType = 'Virtual Machine' \nAND resourceSubType = 'Self-Hosted Integration Runtime'\nAND (resourceEnvironment <> 'Prod' OR resourceEnvironment <> 'Production')",
+							"type": "Expression"
+						},
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "dsAsqlManagedIdentity",
+						"type": "DatasetReference",
+						"parameters": {
+							"connectionString": "sec-metadata-db-connection-string",
+							"schema": "-",
+							"tableName": "-"
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "for each VM",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Get VM metadata",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('get VM metadata').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Stop VM if",
+							"description": "Stop the SHIR VM if it is running and our command parameter = Stop",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "set VM status",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@if(and(\n    equals(pipeline().parameters.Command, 'Stop'), \n    equals(variables('vmStatus'), 'VM Running')), true, false)",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "Stop VM",
+										"description": "Start or Pause Azure VM using REST APIs",
+										"type": "WebActivity",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.01:00:00",
+											"retry": 2,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [
+											{
+												"name": "Azure VM",
+												"value": "Pause"
+											}
+										],
+										"typeProperties": {
+											"url": {
+												"value": "@concat(item().propertyValue,'/',\nitem().resourceName,\n'/Stop?api-version=2022-03-01')",
+												"type": "Expression"
+											},
+											"connectVia": {
+												"referenceName": "AutoResolveIntegrationRuntime",
+												"type": "IntegrationRuntimeReference"
+											},
+											"method": "POST",
+											"body": {
+												"value": "{}",
+												"type": "Expression"
+											},
+											"authentication": {
+												"type": "MSI",
+												"resource": "https://management.azure.com/"
+											}
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "Start VM if",
+							"description": "Start the SHIR VM if it is not running and our command parameter = Start",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "Stop VM if",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@if(and(\n    equals(pipeline().parameters.Command, 'Start'), \n    equals(variables('vmStatus'), 'VM deallocating')), true,\nif(and(\n    equals(pipeline().parameters.Command, 'Start'), \n    equals(variables('vmStatus'), 'Stopped')), true,    \nif(and(\n    equals(pipeline().parameters.Command, 'Start'), \n    equals(variables('vmStatus'), 'VM deallocated')), true, false)))",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "Start VM",
+										"description": "",
+										"type": "WebActivity",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.01:00:00",
+											"retry": 3,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [
+											{
+												"name": "Azure VM",
+												"value": "Pause"
+											}
+										],
+										"typeProperties": {
+											"url": {
+												"value": "@concat(item().propertyValue,'/',\nitem().resourceName,\n'/Start?api-version=2022-03-01')",
+												"type": "Expression"
+											},
+											"connectVia": {
+												"referenceName": "AutoResolveIntegrationRuntime",
+												"type": "IntegrationRuntimeReference"
+											},
+											"method": "POST",
+											"body": {
+												"value": "{}",
+												"type": "Expression"
+											},
+											"authentication": {
+												"type": "MSI",
+												"resource": "https://management.azure.com/"
+											}
+										}
+									},
+									{
+										"name": "Wait 5 minutes",
+										"description": "Wait 5 minutes to give the VM some buffer time to start and for the SHIR service on the VM to start, otherwise copy activities will fail.",
+										"type": "Wait",
+										"dependsOn": [
+											{
+												"activity": "Start VM",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"waitTimeInSeconds": 360
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "check VM status",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.01:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"url": {
+									"value": "@concat(item().propertyValue,'/',\nitem().resourceName,\n'/InstanceView?api-version=2022-03-01')",
+									"type": "Expression"
+								},
+								"connectVia": {
+									"referenceName": "AutoResolveIntegrationRuntime",
+									"type": "IntegrationRuntimeReference"
+								},
+								"method": "GET",
+								"headers": {
+									"Content-Type": "application/json"
+								},
+								"body": "{\n\"Start SHIR\"\n}",
+								"authentication": {
+									"type": "MSI",
+									"resource": "https://management.azure.com/"
+								}
+							}
+						},
+						{
+							"name": "set VM status",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "check VM status",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "vmStatus",
+								"value": {
+									"value": "@activity('Check VM status').output.statuses[1].displayStatus",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"command": {
+				"type": "string",
+				"defaultValue": "Stop"
+			}
+		},
+		"variables": {
+			"vmStatus": {
+				"type": "String"
+			},
+			"vmWaitToStart": {
+				"type": "Boolean"
+			}
+		},
+		"folder": {
+			"name": "001_utility/selfHostedIntegrationRuntime"
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-07-20T18:43:02Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,215 @@
+{
+	"name": "plRowCountValidateSendEmail",
+	"properties": {
+		"description": "Log execution status and send an email to admins",
+		"activities": [
+			{
+				"name": "send email if true",
+				"type": "IfCondition",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@bool(\r\n    equals(\r\n        pipeline().parameters.rowCountRead, \r\n        pipeline().parameters.rowCountInsertedAndUpdated\r\n        )\r\n)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "lookup logic app",
+							"description": "Lookup the logic app url",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.00:05:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderQuery": "SELECT *\nFROM adf.azureResources\nWHERE resourceType = 'Logic App'\nAND resourceSubType = 'Email Notification'",
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "dsAsqlManagedIdentity",
+									"type": "DatasetReference",
+									"parameters": {
+										"connectionString": {
+											"value": "@variables('connectionString')",
+											"type": "Expression"
+										},
+										"schema": "-",
+										"tableName": "-"
+									}
+								},
+								"firstRowOnly": true
+							}
+						},
+						{
+							"name": "call logic app",
+							"description": "This logic app sends an email to selected individuals if enabled",
+							"type": "WebActivity",
+							"dependsOn": [
+								{
+									"activity": "lookup logic app",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								},
+								{
+									"activity": "lookup data factory",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.00:05:00",
+								"retry": 1,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"url": {
+									"value": "@{activity('lookup logic app').output.firstRow.PropertyValue}",
+									"type": "Expression"
+								},
+								"connectVia": {
+									"referenceName": "AutoResolveIntegrationRuntime",
+									"type": "IntegrationRuntimeReference"
+								},
+								"method": "POST",
+								"headers": {
+									"Content-Type": "application/json"
+								},
+								"body": {
+									"value": "{\n  \"DataFactoryName\": \"@{pipeline().DataFactory}\",\n  \"EmailNotificationSendToAddress\": \"@{pipeline().parameters.emailNotificationSendToAddress}\",\n  \"EmailMessage\": \"https://adf.azure.com/en/monitoring/pipelineruns/@{pipeline().parameters.PipelineRunID}?factory=@{activity('lookup data factory').output.firstRow.resourceID}\",\n  \"PipelineName\": \"@{pipeline().parameters.PipelineName}\",\n  \"PipelineRunID\": \"@{pipeline().parameters.PipelineRunID}\",\n  \"EmailSubject\": \"@{pipeline().parameters.emailSubject}\",\n  \"EmailImportance\": \"@{pipeline().parameters.emailImportance}\",\n  \"EmailColor\": \"@{pipeline().parameters.emailColor}\"\n}",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "lookup data factory",
+							"description": "Lookup the data factory url",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.00:05:00",
+								"retry": 2,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderQuery": "SELECT *\nFROM adf.azureResources\nWHERE resourceType = 'Azure Data Factory'\nAND resourceSubType IS NULL",
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "dsAsqlManagedIdentity",
+									"type": "DatasetReference",
+									"parameters": {
+										"connectionString": {
+											"value": "@variables('connectionString')",
+											"type": "Expression"
+										},
+										"schema": "-",
+										"tableName": "-"
+									}
+								},
+								"firstRowOnly": true
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"metadataConnectionString": {
+				"type": "string",
+				"defaultValue": "sec-metadata-db-connection-string"
+			},
+			"emailEnabled": {
+				"type": "string"
+			},
+			"emailNotificationSendToAddress": {
+				"type": "string"
+			},
+			"emailImportance": {
+				"type": "string"
+			},
+			"emailSubject": {
+				"type": "string"
+			},
+			"emailMessage": {
+				"type": "string"
+			},
+			"emailColor": {
+				"type": "string"
+			},
+			"dataFactoryName": {
+				"type": "string"
+			},
+			"pipelineName": {
+				"type": "string"
+			},
+			"pipelineRunID": {
+				"type": "string"
+			},
+			"isIncremental": {
+				"type": "string"
+			},
+			"objectName": {
+				"type": "String"
+			},
+			"objectSchema": {
+				"type": "String"
+			},
+			"dataSourceId": {
+				"type": "string"
+			},
+			"dataProcessId": {
+				"type": "string"
+			},
+			"rowCountRead": {
+				"type": "int"
+			},
+			"rowCountInsertedAndUpdated": {
+				"type": "int"
+			}
+		},
+		"variables": {
+			"connectionString": {
+				"type": "String",
+				"defaultValue": "sec-metadata-db-connection-string"
+			},
+			"subscriptionId": {
+				"type": "String"
+			},
+			"resourceGroupName": {
+				"type": "String"
+			},
+			"messageCardString": {
+				"type": "String"
+			},
+			"teamsWebhook": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "000_logAndEmail"
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-07-20T18:43:02Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

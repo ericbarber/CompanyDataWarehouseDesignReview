@@ -1,0 +1,43 @@
+{
+	"name": "dsSecureFileSystemUserNameBinaryClue",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "IsSecureFileSystemUserName",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"host": "@dataset().host",
+				"userName": "@dataset().userName",
+				"connectionSecretName": "@dataset().connectionSecretName"
+			}
+		},
+		"parameters": {
+			"host": {
+				"type": "string",
+				"defaultValue": "secureftp.sundt.com"
+			},
+			"userName": {
+				"type": "string",
+				"defaultValue": "clueintegrations"
+			},
+			"connectionSecretName": {
+				"type": "string",
+				"defaultValue": "sec-clue-sftp-export"
+			},
+			"directory": {
+				"type": "string",
+				"defaultValue": "/IN"
+			}
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "SftpLocation",
+				"folderPath": {
+					"value": "@dataset().directory",
+					"type": "Expression"
+				}
+			}
+		}
+	}
+}

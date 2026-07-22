@@ -1,0 +1,44 @@
+{
+	"name": "lsSecureFileSystemZipcode",
+	"properties": {
+		"description": "Linked Service for secure file transfer protocol.",
+		"parameters": {
+			"host": {
+				"type": "string",
+				"defaultValue": "ftp.zip-codes.com"
+			},
+			"userName": {
+				"type": "string",
+				"defaultValue": "jmlabuff_at_sundt.com"
+			},
+			"connectionSecretName": {
+				"type": "string",
+				"defaultValue": "sec-zipcode-sftp-export"
+			}
+		},
+		"annotations": [],
+		"type": "Sftp",
+		"typeProperties": {
+			"host": "@{linkedService().host}",
+			"port": 22,
+			"skipHostKeyValidation": true,
+			"authenticationType": "Basic",
+			"userName": "@{linkedService().userName}",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "lsKeyVaultManagedIdentity",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": {
+					"value": "@linkedService().connectionSecretName",
+					"type": "Expression"
+				}
+			}
+		},
+		"connectVia": {
+			"referenceName": "AutoResolveIntegrationRuntime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

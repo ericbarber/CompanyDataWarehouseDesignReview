@@ -1,0 +1,119 @@
+{
+	"name": "plSourceArchiveClueAll",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get Clue Metadata",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "dsSecureFileSystemUserNameBinaryClue",
+						"type": "DatasetReference",
+						"parameters": {
+							"host": "secureftp.sundt.com",
+							"userName": "clueintegrations",
+							"connectionSecretName": "sec-clue-sftp-export",
+							"directory": {
+								"value": "@pipeline().parameters.enviroment_path",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "SftpReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false,
+						"disableChunking": false
+					},
+					"formatSettings": {
+						"type": "BinaryReadSettings"
+					}
+				}
+			},
+			{
+				"name": "ForEachClue",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Get Clue Metadata",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get Clue Metadata').output.childItems",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"batchCount": 10,
+					"activities": [
+						{
+							"name": "If Condition 1",
+							"type": "IfCondition",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@equals(item().type,'File')\n",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "ArchiveClueFile",
+										"type": "ExecutePipeline",
+										"dependsOn": [],
+										"policy": {
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"pipeline": {
+												"referenceName": "ArchiveClueFile",
+												"type": "PipelineReference"
+											},
+											"waitOnCompletion": true,
+											"parameters": {
+												"fileName": {
+													"value": "@item().name",
+													"type": "Expression"
+												},
+												"environment_path": {
+													"value": "@pipeline().parameters.enviroment_path",
+													"type": "Expression"
+												}
+											}
+										}
+									}
+								]
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"enviroment_path": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "100_sourceToBronze/FileSystem"
+		},
+		"annotations": []
+	}
+}

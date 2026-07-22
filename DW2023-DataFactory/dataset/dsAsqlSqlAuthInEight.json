@@ -1,0 +1,40 @@
+{
+	"name": "dsAsqlSqlAuthInEight",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "lsAsqlSqlAuthInEight",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"connectionSecretName": {
+					"value": "@dataset().connectionSecretName",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"connectionSecretName": {
+				"type": "string",
+				"defaultValue": "sec-ineight-db-connection-string"
+			},
+			"schemaName": {
+				"type": "string"
+			},
+			"tableName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().schemaName",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().tableName",
+				"type": "Expression"
+			}
+		}
+	}
+}

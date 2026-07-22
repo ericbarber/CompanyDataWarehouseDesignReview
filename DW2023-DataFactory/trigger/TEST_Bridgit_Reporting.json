@@ -1,0 +1,51 @@
+{
+	"name": "TEST_Bridgit_Reporting",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "plSourceToGoldBridgit_Reporting",
+					"type": "PipelineReference"
+				}
+			},
+			{
+				"pipelineReference": {
+					"referenceName": "plSourceToSilverRestApi_Procore",
+					"type": "PipelineReference"
+				}
+			},
+			{
+				"pipelineReference": {
+					"referenceName": "plSourceToSilverSmartPm",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Week",
+				"interval": 1,
+				"startTime": "2026-05-20T20:19:00",
+				"timeZone": "US Mountain Standard Time",
+				"schedule": {
+					"minutes": [
+						30
+					],
+					"hours": [
+						7
+					],
+					"weekDays": [
+						"Monday",
+						"Friday",
+						"Tuesday",
+						"Wednesday",
+						"Thursday"
+					]
+				}
+			}
+		}
+	}
+}

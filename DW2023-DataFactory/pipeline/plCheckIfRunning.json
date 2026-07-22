@@ -1,0 +1,274 @@
+{
+	"name": "plCheckIfRunning",
+	"properties": {
+		"description": "Check if the given pipeline is already running. This pipeline can be used in lieu of a tumbling trigger and other scenarios to prevent the same pipeline from being executed twice or running concurrently.",
+		"activities": [
+			{
+				"name": "Set Subscription ID",
+				"description": "Set the subscription id as a variable",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Get Subscription ID",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "subscriptionID",
+					"value": {
+						"value": "@activity('Get Subscription ID').output.firstRow.propertyValue",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Get Resource Group",
+				"description": "lookup to the adf.azureResources table in our metadata database and get the name of the resource group",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:05:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "SELECT \nTOP 1 *\n\nFROM adf.AzureResources\n\nWHERE  \nResourceType = 'Azure Data Factory'",
+							"type": "Expression"
+						},
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "dsAsqlManagedIdentity",
+						"type": "DatasetReference",
+						"parameters": {
+							"connectionString": "sec-metadata-db-connection-string",
+							"schema": "-",
+							"tableName": "-"
+						}
+					},
+					"firstRowOnly": true
+				}
+			},
+			{
+				"name": "Get Pipeline Runs",
+				"description": "Hit the Azure Management API with a Web Activity. Performing a POST request to query the pipeline runs",
+				"type": "WebActivity",
+				"dependsOn": [
+					{
+						"activity": "Set Subscription ID",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Get Resource Group",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.01:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"url": {
+						"value": "https://management.azure.com/subscriptions/@{variables('SubscriptionId')}/resourceGroups/@{activity('Get Resource Group').output.firstRow.ResourceGroupName}/providers/Microsoft.DataFactory/factories/@{activity('Get Resource Group').output.firstRow.ResourceName}/queryPipelineRuns?api-version=2018-06-01",
+						"type": "Expression"
+					},
+					"connectVia": {
+						"referenceName": "AutoResolveIntegrationRuntime",
+						"type": "IntegrationRuntimeReference"
+					},
+					"method": "POST",
+					"body": {
+						"lastUpdatedAfter": "@{addhours(utcnow(),int(-24))}",
+						"lastUpdatedBefore": "@{addminutes(utcnow(),int(-0))}"
+					},
+					"authentication": {
+						"type": "MSI",
+						"resource": "https://management.core.windows.net/"
+					}
+				}
+			},
+			{
+				"name": "Filter Running Pipelines",
+				"description": "Filter the record values to only currently running pipelines.",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "Get Pipeline Runs",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get Pipeline Runs').output.value",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@equals(item().status,'InProgress')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "If Pipeline is Running",
+				"description": "If there are pipelines that are running and they aren't the parent pipeline, raise an exception, if not then carry on and give us a success.",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Filter for Parent Pipeline",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@greaterOrEquals(int(activity('Filter for Parent Pipeline').output.FilteredItemsCount),2)",
+						"type": "Expression"
+					},
+					"ifTrueActivities": [
+						{
+							"name": "Raise Exception",
+							"description": "this activity will raise an exception",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.00:05:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderQuery": {
+										"value": "RAISERROR('@{concat('Provided pipeline name (',pipeline().parameters.PipelineName,') still has a run in progress or queued given the query range parameters set in the variable.')}',16,1);",
+										"type": "Expression"
+									},
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "dsAsqlManagedIdentity",
+									"type": "DatasetReference",
+									"parameters": {
+										"connectionString": "sec-metadata-db-connection-string",
+										"schema": "-",
+										"tableName": "-"
+									}
+								},
+								"firstRowOnly": true
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Filter for Parent Pipeline",
+				"description": "Filter out any InProgress pipelines that didn't start within the last 1 minute, otherwise it will say the parent pipeline that executed this is InProgress. Also filter the returned values that contain the name of the pipeline we are looking for.",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "Filter Running Pipelines",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Filter Running Pipelines').output.value",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@and(less(item().runStart,addminutes(utcnow(), int(-3))), \ncontains(item().pipelineName, pipeline().parameters.pipelineName))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Get Subscription ID",
+				"description": "lookup to the adf.azureResources table in our metadata database and get the name of the resource group",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:05:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "SELECT \nTOP 1 *\n\nFROM adf.AzureResources\n\nWHERE  \nResourceType = 'Subscription'",
+							"type": "Expression"
+						},
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "dsAsqlManagedIdentity",
+						"type": "DatasetReference",
+						"parameters": {
+							"connectionString": "sec-metadata-db-connection-string",
+							"schema": "-",
+							"tableName": "-"
+						}
+					},
+					"firstRowOnly": true
+				}
+			}
+		],
+		"parameters": {
+			"pipelineName": {
+				"type": "string",
+				"defaultValue": "plStageToMdw"
+			},
+			"pipelineRunID": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"subscriptionID": {
+				"type": "String"
+			},
+			"resourceGroup": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "001_utility/checkIfPipelineRunning"
+		},
+		"annotations": [],
+		"lastPublishTime": "2023-07-20T18:43:02Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
