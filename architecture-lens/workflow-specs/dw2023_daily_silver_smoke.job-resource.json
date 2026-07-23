@@ -1,0 +1,74 @@
+{
+  "resources": {
+    "jobs": {
+      "dw2023_daily_silver_smoke": {
+        "email_notifications": {
+          "no_alert_for_skipped_runs": false
+        },
+        "max_concurrent_runs": 1,
+        "name": "dw2023_daily_silver_smoke",
+        "parameters": [
+          {
+            "default": "false",
+            "name": "debug_flag"
+          },
+          {
+            "default": "{{job.start_time.iso_datetime}}",
+            "name": "etl_silver_timestamp"
+          },
+          {
+            "default": "0",
+            "name": "is_full_load"
+          }
+        ],
+        "performance_target": "PERFORMANCE_OPTIMIZED",
+        "queue": {
+          "enabled": true
+        },
+        "run_as": {
+          "service_principal_name": "${var.run_as_sp}"
+        },
+        "tasks": [
+          {
+            "email_notifications": {},
+            "for_each_task": {
+              "concurrency": 4,
+              "inputs": "[{\"data_process_id\":\"885\",\"data_source_id\":\"503\",\"data_source_name\":\"ineight\",\"is_incremental\":\"0\",\"is_snapshot\":\"0\",\"julian_date_columns\":\"\",\"object_name\":\"qry_complianceobsoleteuseremail\",\"object_schema\":\"silver_ineight\",\"partition_by\":\"\",\"pii_columns\":\"\",\"primary_key_column_list\":\"\",\"project_id_column\":\"\",\"snapshot_period\":\"\",\"source_type\":\"Azure SQL Database\",\"target_object\":\"silver_ineight.qry_complianceobsoleteuseremail\",\"watermark_column\":\"etlBronzeTimestamp\"},{\"data_process_id\":\"97\",\"data_source_id\":\"142\",\"data_source_name\":\"cosential\",\"is_incremental\":\"0\",\"is_snapshot\":\"0\",\"julian_date_columns\":\"\",\"object_name\":\"Companies\",\"object_schema\":\"silver_cosential\",\"partition_by\":\"\",\"pii_columns\":\"\",\"primary_key_column_list\":\"\",\"project_id_column\":\"\",\"snapshot_period\":\"\",\"source_type\":\"SQL Server\",\"target_object\":\"silver_cosential.Companies\",\"watermark_column\":\"etlBronzeTimestamp\"},{\"data_process_id\":\"176\",\"data_source_id\":\"315\",\"data_source_name\":\"azureactivedirectory\",\"is_incremental\":\"0\",\"is_snapshot\":\"0\",\"julian_date_columns\":\"\",\"object_name\":\"users\",\"object_schema\":\"silver_azureactivedirectory\",\"partition_by\":\"\",\"pii_columns\":\"\",\"primary_key_column_list\":\"\",\"project_id_column\":\"\",\"snapshot_period\":\"\",\"source_type\":\"REST API\",\"target_object\":\"silver_azureactivedirectory.users\",\"watermark_column\":\"etlBronzeTimestamp\"},{\"data_process_id\":\"831\",\"data_source_id\":\"482\",\"data_source_name\":\"b2g\",\"is_incremental\":\"0\",\"is_snapshot\":\"0\",\"julian_date_columns\":\"\",\"object_name\":\"B2G_XBE_Subcontractor_Commitments\",\"object_schema\":\"silver_b2g\",\"partition_by\":\"\",\"pii_columns\":\"\",\"primary_key_column_list\":\"\",\"project_id_column\":\"\",\"snapshot_period\":\"\",\"source_type\":\"Sharepoint List\",\"target_object\":\"silver_b2g.B2G_XBE_Subcontractor_Commitments\",\"watermark_column\":\"etlBronzeTimestamp\"},{\"data_process_id\":\"826\",\"data_source_id\":\"481\",\"data_source_name\":\"webapp\",\"is_incremental\":\"0\",\"is_snapshot\":\"0\",\"julian_date_columns\":\"\",\"object_name\":\"Audits\",\"object_schema\":\"silver_webapp\",\"partition_by\":\"\",\"pii_columns\":\"\",\"primary_key_column_list\":\"ID, Email, Timestamp\",\"project_id_column\":\"\",\"snapshot_period\":\"\",\"source_type\":\"Azure SQL Database - SDAT Web App\",\"target_object\":\"silver_webapp.Audits\",\"watermark_column\":\"etlBronzeTimestamp\"},{\"data_process_id\":\"830\",\"data_source_id\":\"483\",\"data_source_name\":\"b2g\",\"is_incremental\":\"0\",\"is_snapshot\":\"0\",\"julian_date_columns\":\"\",\"object_name\":\"contract\",\"object_schema\":\"silver_b2g\",\"partition_by\":\"\",\"pii_columns\":\"\",\"primary_key_column_list\":\"\",\"project_id_column\":\"\",\"snapshot_period\":\"\",\"source_type\":\"SOAP API\",\"target_object\":\"silver_b2g.contract\",\"watermark_column\":\"etlBronzeTimestamp\"},{\"data_process_id\":\"672\",\"data_source_id\":\"345\",\"data_source_name\":\"heavyjob\",\"is_incremental\":\"0\",\"is_snapshot\":\"0\",\"julian_date_columns\":\"\",\"object_name\":\"SCRDR_Equip\",\"object_schema\":\"silver_heavyjob\",\"partition_by\":\"\",\"pii_columns\":\"\",\"primary_key_column_list\":\"\",\"project_id_column\":\"\",\"snapshot_period\":\"\",\"source_type\":\"File System\",\"target_object\":\"silver_heavyjob.SCRDR_Equip\",\"watermark_column\":\"etlBronzeTimestamp\"},{\"data_process_id\":\"828\",\"data_source_id\":\"486\",\"data_source_name\":\"cslb\",\"is_incremental\":\"0\",\"is_snapshot\":\"0\",\"julian_date_columns\":\"\",\"object_name\":\"license_data\",\"object_schema\":\"silver_cslb\",\"partition_by\":\"\",\"pii_columns\":\"\",\"primary_key_column_list\":\"\",\"project_id_column\":\"\",\"snapshot_period\":\"\",\"source_type\":\"API\",\"target_object\":\"silver_cslb.license_data\",\"watermark_column\":\"etlBronzeTimestamp\"},{\"data_process_id\":\"754\",\"data_source_id\":\"436\",\"data_source_name\":\"zipcodes\",\"is_incremental\":\"0\",\"is_snapshot\":\"0\",\"julian_date_columns\":\"\",\"object_name\":\"Zipcode_Update_Standard\",\"object_schema\":\"silver_zipcodes\",\"partition_by\":\"\",\"pii_columns\":\"\",\"primary_key_column_list\":\"\",\"project_id_column\":\"\",\"snapshot_period\":\"\",\"source_type\":\"SFTP File\",\"target_object\":\"silver_zipcodes.Zipcode_Update_Standard\",\"watermark_column\":\"etlBronzeTimestamp\"},{\"data_process_id\":\"43\",\"data_source_id\":\"61\",\"data_source_name\":\"e1\",\"is_incremental\":\"1\",\"is_snapshot\":\"0\",\"julian_date_columns\":\"\",\"object_name\":\"F0006\",\"object_schema\":\"silver_e1\",\"partition_by\":\"\",\"pii_columns\":\"\",\"primary_key_column_list\":\"MCMCU\",\"project_id_column\":\"MCMCU\",\"snapshot_period\":\"\",\"source_type\":\"SQL Server\",\"target_object\":\"silver_e1.F0006\",\"watermark_column\":\"etlBronzeTimestamp\"}]",
+              "task": {
+                "email_notifications": {},
+                "notebook_task": {
+                  "base_parameters": {
+                    "debug_flag": "{{job.parameters.debug_flag}}",
+                    "etl_silver_timestamp": "{{job.parameters.etl_silver_timestamp}}",
+                    "is_full_load": "{{job.parameters.is_full_load}}",
+                    "is_incremental": "{{input.is_incremental}}",
+                    "is_snapshot": "{{input.is_snapshot}}",
+                    "julian_date_columns": "{{input.julian_date_columns}}",
+                    "object_name": "{{input.object_name}}",
+                    "object_schema": "{{input.object_schema}}",
+                    "partition_by": "{{input.partition_by}}",
+                    "pii_columns": "{{input.pii_columns}}",
+                    "primary_key_column_list": "{{input.primary_key_column_list}}",
+                    "project_id_column": "{{input.project_id_column}}",
+                    "snapshot_period": "{{input.snapshot_period}}"
+                  },
+                  "notebook_path": "/Workspace/data_engineering/200_bronze_to_silver/bronze_to_silver",
+                  "source": "WORKSPACE"
+                },
+                "task_key": "bronze_to_silver_smoke_iteration_001",
+                "timeout_seconds": 0,
+                "webhook_notifications": {}
+              }
+            },
+            "run_if": "ALL_SUCCESS",
+            "task_key": "for_each_daily_silver_smoke_shard_001",
+            "timeout_seconds": 0,
+            "webhook_notifications": {}
+          }
+        ],
+        "timeout_seconds": 0,
+        "webhook_notifications": {}
+      }
+    }
+  }
+}

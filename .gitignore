@@ -22,3 +22,6 @@ target
 
 # Source repository exports may include copied Git internals.
 DW2023-DataFactory/old-git-files/
+
+# Local Databricks workflow candidate settings.
+architecture-lens/config/workflow-overrides.json

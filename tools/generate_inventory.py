@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import ast
+import csv
 import json
 import re
 import zipfile
@@ -17,8 +18,11 @@ from typing import Iterable
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_ZIP = ROOT / "DW2023-Databricks.zip"
 ADF_SOURCE_DIR = ROOT / "DW2023-DataFactory"
+METADATA_DIR = ROOT / "metadata"
 BOOK_SRC = ROOT / "warehouse-architecture-docs" / "src"
 LENS_METADATA = ROOT / "architecture-lens" / "metadata"
+WORKFLOW_SPECS = ROOT / "architecture-lens" / "workflow-specs"
+WORKFLOW_CONFIG = ROOT / "architecture-lens" / "config" / "workflow-overrides.json"
 
 SOURCE_PREFIX = "DW2023-Databricks/"
 NOTEBOOK_PREFIX = SOURCE_PREFIX + "notebooks/"
@@ -147,6 +151,49 @@ class MetadataFieldUsageRecord:
     sample_expressions: list[str]
 
 
+@dataclass(frozen=True)
+class ResolvedDataProcessRecord:
+    id: str
+    data_process_id: str
+    data_source_id: str
+    data_source_name: str
+    data_source_type: str
+    data_process: str
+    batch_group: str
+    subject_area: str
+    source_object: str
+    target_object: str
+    data_process_path_or_procedure: str
+    path_resolution: str
+    notebook_id: str
+    notebook_path: str
+    is_enabled: str
+    is_incremental: str
+    partition_by: str
+    pii_columns: str
+    primary_key_columns: str
+    project_id_column: str
+    silver_julian_date_columns: str
+    silver_is_snapshot: str
+    silver_snapshot_period: str
+    has_source_query: bool
+    has_connection_secret: bool
+    watermark_column: str
+    last_execution_timestamp: str
+
+
+@dataclass(frozen=True)
+class MetadataDependencyRecord:
+    id: str
+    dependency_id: str
+    data_process: str
+    source_object: str
+    target_object: str
+    is_enabled: str
+    is_test_promote_environment: str
+    is_prod_promote_environment: str
+
+
 def main() -> None:
     if not SOURCE_ZIP.exists():
         raise SystemExit(f"Source archive not found: {SOURCE_ZIP}")
@@ -163,7 +210,12 @@ def build_inventory(source_zip: Path) -> dict:
         jobs = build_job_records(archive, names)
         bundle = parse_bundle_config(archive, names)
     adf = build_adf_inventory(ADF_SOURCE_DIR)
-    flow_graph = build_flow_graph(adf["pipelines"], adf["triggers"], adf["resources"], jobs, notebooks)
+    metadata_exports = build_metadata_exports(METADATA_DIR, notebooks)
+    flow_graph = build_flow_graph(
+        adf["pipelines"], adf["triggers"], adf["resources"], jobs, notebooks, metadata_exports
+    )
+    workflow_candidates = build_databricks_workflow_candidates(metadata_exports)
+    workflow_task_specs = build_databricks_workflow_task_specs(metadata_exports)
 
     notebook_by_id = {record.id: record for record in notebooks}
     function_counts_by_notebook: dict[str, int] = Counter(record.notebook_id for record in functions)
@@ -193,6 +245,23 @@ def build_inventory(source_zip: Path) -> dict:
             ),
             "adf_metadata_queries": len(adf["metadata_queries"]),
             "adf_metadata_field_usages": len(adf["metadata_field_usages"]),
+            "metadata_datasource_rows": metadata_exports["summary"]["datasource_rows"],
+            "metadata_dataprocess_rows": metadata_exports["summary"]["dataprocess_rows"],
+            "metadata_dependency_rows": metadata_exports["summary"]["dependency_rows"],
+            "metadata_resolved_notebook_paths": metadata_exports["summary"][
+                "resolved_notebook_paths"
+            ],
+            "metadata_unresolved_notebook_paths": metadata_exports["summary"][
+                "unresolved_notebook_paths"
+            ],
+            "databricks_workflow_candidates": len(workflow_candidates["candidates"]),
+            "databricks_workflow_candidate_blockers": workflow_candidates["summary"][
+                "blocked_candidate_count"
+            ],
+            "databricks_workflow_task_specs": len(workflow_task_specs["specs"]),
+            "databricks_dev_bundle_resource_candidates": workflow_task_specs["summary"][
+                "dev_bundle_resource_candidate_count"
+            ],
             "notebooks_with_widgets": sum(1 for record in notebooks if record.widgets),
             "notebooks_with_table_references": sum(
                 1 for record in notebooks if record.table_references
@@ -214,6 +283,10 @@ def build_inventory(source_zip: Path) -> dict:
             "adf_metadata_query_categories": Counter(
                 query.category for query in adf["metadata_queries"]
             ),
+            "metadata_source_types": metadata_exports["source_types"],
+            "metadata_process_types": metadata_exports["process_types"],
+            "metadata_batch_groups": metadata_exports["batch_groups"],
+            "metadata_path_resolution": metadata_exports["path_resolution"],
         },
         "bundle": bundle,
         "notebooks": [asdict(record) for record in notebooks],
@@ -229,7 +302,19 @@ def build_inventory(source_zip: Path) -> dict:
                 asdict(record) for record in adf["metadata_field_usages"]
             ],
         },
+        "metadata_exports": {
+            "source": metadata_exports["source"],
+            "tables": metadata_exports["tables"],
+            "resolved_processes": [
+                asdict(record) for record in metadata_exports["resolved_processes"]
+            ],
+            "dependencies": [
+                asdict(record) for record in metadata_exports["dependencies"]
+            ],
+        },
         "flow_graph": flow_graph,
+        "databricks_workflow_candidates": workflow_candidates,
+        "databricks_workflow_task_specs": workflow_task_specs,
         "relationships": {
             "job_to_notebook_paths": build_job_notebook_relationships(jobs),
             "adf_trigger_to_pipelines": {
@@ -823,12 +908,208 @@ def read_json_file(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def build_metadata_exports(source_dir: Path, notebooks: list[NotebookRecord]) -> dict:
+    datasource_rows = load_csv_rows(source_dir / "datasource.csv")
+    dataprocess_rows = load_csv_rows(source_dir / "dataprocess.csv")
+    dependency_rows = load_csv_rows(source_dir / "dataprocessdependency.csv")
+
+    datasource_by_id = {
+        row.get("dataSourceId", ""): row for row in datasource_rows if row.get("dataSourceId")
+    }
+    notebook_lookup = build_metadata_notebook_lookup(notebooks)
+
+    resolved_processes: list[ResolvedDataProcessRecord] = []
+    for index, process_row in enumerate(dataprocess_rows, start=1):
+        data_source_id = process_row.get("dataSourceID") or process_row.get("dataSourceId", "")
+        source_row = datasource_by_id.get(data_source_id, {})
+        path = process_row.get("dataProcessPathOrProcedure", "")
+        resolution = resolve_metadata_notebook_path(path, notebook_lookup)
+        source_object = dotted_name(source_row.get("objectSchema", ""), source_row.get("objectName", ""))
+        target_object = dotted_name(process_row.get("objectSchema", ""), process_row.get("objectName", ""))
+
+        resolved_processes.append(
+            ResolvedDataProcessRecord(
+                id=f"META-PROC-{index:05d}",
+                data_process_id=process_row.get("dataProcessID", ""),
+                data_source_id=data_source_id,
+                data_source_name=source_row.get("dataSourceName", ""),
+                data_source_type=source_row.get("dataSourceType", ""),
+                data_process=process_row.get("dataProcess", ""),
+                batch_group=process_row.get("batchGroup", ""),
+                subject_area=process_row.get("subjectArea", ""),
+                source_object=source_object,
+                target_object=target_object,
+                data_process_path_or_procedure=path,
+                path_resolution=resolution["status"],
+                notebook_id=resolution["notebook_id"],
+                notebook_path=resolution["notebook_path"],
+                is_enabled=process_row.get("isEnabled", ""),
+                is_incremental=process_row.get("isIncremental", ""),
+                partition_by=process_row.get("partitionBy", ""),
+                pii_columns=process_row.get("piiColumns", ""),
+                primary_key_columns=process_row.get("primaryKeyColumns", ""),
+                project_id_column=process_row.get("projectIdColumn", ""),
+                silver_julian_date_columns=process_row.get("silverJulianDateColumns", ""),
+                silver_is_snapshot=process_row.get("silverIsSnapshot", ""),
+                silver_snapshot_period=process_row.get("silverSnapshotPeriod", ""),
+                has_source_query=bool(source_row.get("sourceQuery", "")),
+                has_connection_secret=bool(source_row.get("connectionSecretName", "")),
+                watermark_column=process_row.get("watermarkColumn", "")
+                or source_row.get("watermarkColumn", ""),
+                last_execution_timestamp=process_row.get("lastExecutionTimestamp", ""),
+            )
+        )
+
+    dependencies = [
+        MetadataDependencyRecord(
+            id=f"META-DEP-{index:05d}",
+            dependency_id=row.get("dataProcessDependencyId", ""),
+            data_process=row.get("dataProcess", ""),
+            source_object=dotted_name(row.get("sourceObjectSchema", ""), row.get("sourceObjectName", "")),
+            target_object=dotted_name(
+                row.get("destinationObjectSchema", ""),
+                row.get("destinationObjectName", ""),
+            ),
+            is_enabled=row.get("isEnabled", ""),
+            is_test_promote_environment=row.get("isTestPromoteEnvironment", ""),
+            is_prod_promote_environment=row.get("isProdPromoteEnvironment", ""),
+        )
+        for index, row in enumerate(dependency_rows, start=1)
+    ]
+
+    path_resolution = Counter(record.path_resolution for record in resolved_processes)
+    return {
+        "source": str(source_dir.relative_to(ROOT)) if source_dir.exists() else "",
+        "tables": {
+            "datasource": describe_csv_table(source_dir / "datasource.csv", datasource_rows),
+            "dataprocess": describe_csv_table(source_dir / "dataprocess.csv", dataprocess_rows),
+            "dataprocessdependency": describe_csv_table(
+                source_dir / "dataprocessdependency.csv",
+                dependency_rows,
+            ),
+        },
+        "summary": {
+            "datasource_rows": len(datasource_rows),
+            "dataprocess_rows": len(dataprocess_rows),
+            "dependency_rows": len(dependency_rows),
+            "enabled_datasource_rows": count_enabled(datasource_rows),
+            "enabled_dataprocess_rows": count_enabled(dataprocess_rows),
+            "enabled_dependency_rows": count_enabled(dependency_rows),
+            "resolved_notebook_paths": path_resolution.get("resolved_notebook", 0),
+            "unresolved_notebook_paths": path_resolution.get("unresolved_notebook_path", 0),
+        },
+        "source_types": Counter(row.get("dataSourceType", "") for row in datasource_rows),
+        "process_types": Counter(row.get("dataProcess", "") for row in dataprocess_rows),
+        "batch_groups": Counter(
+            row.get("batchGroup", "") for row in datasource_rows + dataprocess_rows
+        ),
+        "path_resolution": path_resolution,
+        "resolved_processes": resolved_processes,
+        "dependencies": dependencies,
+    }
+
+
+def load_csv_rows(path: Path) -> list[dict[str, str]]:
+    if not path.exists():
+        return []
+    with path.open(newline="", encoding="utf-8-sig") as handle:
+        return [
+            {key: normalize_metadata_value(value) for key, value in row.items()}
+            for row in csv.DictReader(handle)
+        ]
+
+
+def describe_csv_table(path: Path, rows: list[dict[str, str]]) -> dict:
+    return {
+        "path": str(path.relative_to(ROOT)) if path.exists() else str(path),
+        "row_count": len(rows),
+        "columns": list(rows[0].keys()) if rows else [],
+    }
+
+
+def normalize_metadata_value(value: str | None) -> str:
+    if value is None:
+        return ""
+    value = value.strip()
+    if value.upper() == "NULL":
+        return ""
+    return value
+
+
+def count_enabled(rows: list[dict[str, str]]) -> int:
+    return sum(1 for row in rows if row.get("isEnabled") == "1")
+
+
+def build_metadata_notebook_lookup(notebooks: list[NotebookRecord]) -> dict[str, NotebookRecord]:
+    lookup: dict[str, NotebookRecord] = {}
+    for notebook in notebooks:
+        without_extension = notebook.path.removesuffix(".py")
+        relative_workspace_path = "/" + without_extension.removeprefix("notebooks/")
+        workspace_path = "/Workspace" + relative_workspace_path
+        for key in {relative_workspace_path, workspace_path, without_extension}:
+            lookup[normalize_metadata_path_key(key)] = notebook
+    return lookup
+
+
+def resolve_metadata_notebook_path(path: str, lookup: dict[str, NotebookRecord]) -> dict[str, str]:
+    if not path:
+        return {"status": "missing_path", "notebook_id": "", "notebook_path": ""}
+    if is_dynamic_expression(path):
+        return {"status": "dynamic_expression", "notebook_id": "", "notebook_path": ""}
+
+    candidate_keys = metadata_path_candidate_keys(path)
+    for key in candidate_keys:
+        notebook = lookup.get(key)
+        if notebook:
+            return {
+                "status": "resolved_notebook",
+                "notebook_id": notebook.id,
+                "notebook_path": notebook.path,
+            }
+
+    key = candidate_keys[0]
+    if key.startswith("/data_engineering/") or key.startswith("/workspace/data_engineering/"):
+        return {"status": "unresolved_notebook_path", "notebook_id": "", "notebook_path": ""}
+    if re.match(r"^\d{3}_", key.lstrip("/")):
+        return {"status": "unresolved_notebook_path", "notebook_id": "", "notebook_path": ""}
+    if key.startswith("/"):
+        return {"status": "external_workspace_path", "notebook_id": "", "notebook_path": ""}
+    return {"status": "procedure_or_sql", "notebook_id": "", "notebook_path": ""}
+
+
+def metadata_path_candidate_keys(path: str) -> list[str]:
+    key = normalize_metadata_path_key(path)
+    candidates = [key]
+    if key.startswith("notebooks/data_engineering/"):
+        candidates.append("/" + key.removeprefix("notebooks/"))
+    if key.startswith("data_engineering/"):
+        candidates.append("/" + key)
+    if re.match(r"^\d{3}_", key.lstrip("/")):
+        candidates.append("/data_engineering/" + key.lstrip("/"))
+    if key.startswith("/workspace/data_engineering/"):
+        candidates.append(key.removeprefix("/workspace"))
+    return list(dict.fromkeys(candidates))
+
+
+def normalize_metadata_path_key(path: str) -> str:
+    key = clean_expression(path).strip().replace("\\", "/")
+    key = key.removesuffix(".py").rstrip("/")
+    return key.lower()
+
+
+def dotted_name(schema: str, name: str) -> str:
+    if schema and name:
+        return f"{schema}.{name}"
+    return name or schema
+
+
 def build_flow_graph(
     pipelines: list[AdfPipelineRecord],
     triggers: list[AdfTriggerRecord],
     resources: list[AdfResourceRecord],
     jobs: list[JobRecord],
     notebooks: list[NotebookRecord],
+    metadata_exports: dict,
 ) -> dict:
     nodes: dict[str, dict] = {}
     edges: list[dict] = []
@@ -977,10 +1258,110 @@ def build_flow_graph(
                 add_edge(activity_node, service_node, "uses_linked_service")
                 add_edge(pipeline_node, service_node, "uses_linked_service")
 
+    metadata_process_by_object = {
+        normalize_object_key(process.target_object): process
+        for process in metadata_exports["resolved_processes"]
+        if process.target_object and process.is_enabled == "1"
+    }
+    for process in metadata_exports["resolved_processes"]:
+        process_node = graph_id("metadata_process", process.id)
+        add_node(
+            process_node,
+            "metadata_process",
+            process.target_object or process.id,
+            data_process_id=process.data_process_id,
+            data_process=process.data_process,
+            batch_group=process.batch_group,
+            subject_area=process.subject_area,
+            target_object=process.target_object,
+            path_resolution=process.path_resolution,
+            is_enabled=process.is_enabled,
+            is_incremental=process.is_incremental,
+        )
+
+        if process.data_source_id or process.data_source_name:
+            source_key = process.data_source_id or process.data_source_name
+            source_node = graph_id("metadata_source", source_key)
+            add_node(
+                source_node,
+                "metadata_source",
+                process.data_source_name or source_key,
+                data_source_id=process.data_source_id,
+                data_source_type=process.data_source_type,
+                has_connection_secret=process.has_connection_secret,
+            )
+            add_edge(process_node, source_node, "reads_source_metadata")
+
+        if process.source_object:
+            source_object_node = graph_id("data_object", process.source_object)
+            add_node(source_object_node, "data_object", process.source_object)
+            add_edge(process_node, source_object_node, "reads_object")
+
+        if process.target_object:
+            target_object_node = graph_id("data_object", process.target_object)
+            add_node(target_object_node, "data_object", process.target_object)
+            add_edge(process_node, target_object_node, "produces_object")
+
+        if process.notebook_id:
+            notebook_node = graph_id("databricks_notebook", process.notebook_id)
+            add_node(
+                notebook_node,
+                "databricks_notebook",
+                process.notebook_path,
+                path=process.notebook_path,
+                resolved=True,
+                dynamic=False,
+            )
+            add_edge(process_node, notebook_node, "runs_notebook")
+        elif process.data_process_path_or_procedure:
+            notebook_path_node = graph_id(
+                "databricks_notebook_path", process.data_process_path_or_procedure
+            )
+            add_node(
+                notebook_path_node,
+                "databricks_notebook",
+                process.data_process_path_or_procedure,
+                path=process.data_process_path_or_procedure,
+                resolved=False,
+                dynamic=False,
+                path_resolution=process.path_resolution,
+            )
+            add_edge(process_node, notebook_path_node, "references_notebook_path")
+
+    for dependency in metadata_exports["dependencies"]:
+        if dependency.is_enabled != "1":
+            continue
+        target_process = metadata_process_by_object.get(normalize_object_key(dependency.target_object))
+        source_process = metadata_process_by_object.get(normalize_object_key(dependency.source_object))
+        target_object_node = graph_id("data_object", dependency.target_object)
+        add_node(target_object_node, "data_object", dependency.target_object or dependency.id)
+
+        if dependency.source_object:
+            source_object_node = graph_id("data_object", dependency.source_object)
+            add_node(source_object_node, "data_object", dependency.source_object)
+            add_edge(target_object_node, source_object_node, "depends_on_object")
+
+        if target_process and source_process:
+            add_edge(
+                graph_id("metadata_process", target_process.id),
+                graph_id("metadata_process", source_process.id),
+                "depends_on_metadata_process",
+                dependency_id=dependency.dependency_id,
+            )
+        elif target_process and dependency.source_object:
+            add_edge(
+                graph_id("metadata_process", target_process.id),
+                graph_id("data_object", dependency.source_object),
+                "depends_on_external_object",
+                dependency_id=dependency.dependency_id,
+            )
+
     flow_summaries = [
         summarize_trigger_flow(trigger, pipeline_by_name, resource_by_name)
         for trigger in triggers
     ]
+    node_types = Counter(node["type"] for node in nodes.values())
+    edge_types = Counter(edge["type"] for edge in edges)
 
     return {
         "nodes": sorted(nodes.values(), key=lambda node: node["id"]),
@@ -991,6 +1372,8 @@ def build_flow_graph(
             "edge_count": len(edges),
             "trigger_count": len(triggers),
             "pipeline_count": len(pipelines),
+            "node_types": dict(sorted(node_types.items())),
+            "edge_types": dict(sorted(edge_types.items())),
         },
     }
 
@@ -1082,6 +1465,525 @@ def summarize_trigger_flow(
     }
 
 
+def build_databricks_workflow_candidates(metadata_exports: dict) -> dict:
+    enabled_processes = [
+        process for process in metadata_exports["resolved_processes"] if process.is_enabled == "1"
+    ]
+    enabled_dependencies = [
+        dependency
+        for dependency in metadata_exports["dependencies"]
+        if dependency.is_enabled == "1"
+    ]
+    process_by_target = {
+        normalize_object_key(process.target_object): process
+        for process in enabled_processes
+        if process.target_object
+    }
+    grouped_processes: dict[tuple[str, str], list[ResolvedDataProcessRecord]] = defaultdict(list)
+    for process in enabled_processes:
+        grouped_processes[
+            (
+                process.batch_group or "unspecified_batch",
+                process.data_process or "unknown_process",
+            )
+        ].append(process)
+
+    dependencies_by_group: dict[tuple[str, str], list[MetadataDependencyRecord]] = defaultdict(list)
+    for dependency in enabled_dependencies:
+        target_process = process_by_target.get(normalize_object_key(dependency.target_object))
+        if not target_process:
+            continue
+        dependencies_by_group[
+            (
+                target_process.batch_group or "unspecified_batch",
+                target_process.data_process or "unknown_process",
+            )
+        ].append(dependency)
+
+    candidates = []
+    for (batch_group, data_process), processes in sorted(grouped_processes.items()):
+        dependencies = dependencies_by_group.get((batch_group, data_process), [])
+        resolved_processes = [
+            process for process in processes if process.path_resolution == "resolved_notebook"
+        ]
+        unresolved_processes = [
+            process
+            for process in processes
+            if process.path_resolution == "unresolved_notebook_path"
+        ]
+        external_or_procedure_processes = [
+            process
+            for process in processes
+            if process.path_resolution
+            in {
+                "external_workspace_path",
+                "procedure_or_sql",
+                "empty_path",
+            }
+        ]
+        internal_dependency_count = 0
+        external_dependency_count = 0
+        root_dependency_count = 0
+        missing_target_dependency_count = 0
+        for dependency in dependencies:
+            target_process = process_by_target.get(normalize_object_key(dependency.target_object))
+            source_process = process_by_target.get(normalize_object_key(dependency.source_object))
+            if not target_process:
+                missing_target_dependency_count += 1
+            elif not dependency.source_object:
+                root_dependency_count += 1
+            elif source_process:
+                internal_dependency_count += 1
+            else:
+                external_dependency_count += 1
+
+        unique_notebooks = sorted(
+            {process.notebook_path for process in resolved_processes if process.notebook_path}
+        )
+        subject_areas = Counter(process.subject_area or "Unspecified" for process in processes)
+        source_types = Counter(
+            process.data_source_type or "Unspecified"
+            for process in processes
+            if process.data_source_type
+        )
+        if unresolved_processes:
+            readiness = "blocked_missing_notebooks"
+            recommended_wave = "Wave 0 - artifact recovery"
+        elif external_or_procedure_processes or external_dependency_count:
+            readiness = "needs_design_resolution"
+            recommended_wave = "Wave 1 - migration design hardening"
+        elif dependencies:
+            readiness = "dependency_dag_candidate"
+            recommended_wave = "Wave 2 - generated task DAG pilot"
+        else:
+            readiness = "pilot_candidate"
+            recommended_wave = "Wave 1 - metadata fan-out pilot"
+
+        if len(unique_notebooks) <= 3 and len(processes) > 50:
+            recommended_pattern = "metadata-driven driver with bounded fan-out"
+        elif dependencies:
+            recommended_pattern = "generated Databricks workflow task DAG"
+        else:
+            recommended_pattern = "Databricks workflow with reusable notebook task"
+
+        candidates.append(
+            {
+                "id": graph_id("databricks_workflow_candidate", f"{batch_group}-{data_process}"),
+                "name": workflow_candidate_name(batch_group, data_process),
+                "batch_group": batch_group,
+                "data_process": data_process,
+                "task_count": len(processes),
+                "resolved_notebook_task_count": len(resolved_processes),
+                "unresolved_notebook_task_count": len(unresolved_processes),
+                "external_or_procedure_task_count": len(external_or_procedure_processes),
+                "unique_notebook_count": len(unique_notebooks),
+                "dependency_count": len(dependencies),
+                "internal_dependency_count": internal_dependency_count,
+                "external_dependency_count": external_dependency_count,
+                "root_dependency_count": root_dependency_count,
+                "missing_target_dependency_count": missing_target_dependency_count,
+                "subject_areas": dict(subject_areas.most_common()),
+                "source_types": dict(source_types.most_common()),
+                "readiness": readiness,
+                "recommended_wave": recommended_wave,
+                "recommended_pattern": recommended_pattern,
+                "sample_notebooks": unique_notebooks[:10],
+                "missing_notebook_paths": sorted(
+                    {
+                        process.data_process_path_or_procedure
+                        for process in unresolved_processes
+                        if process.data_process_path_or_procedure
+                    }
+                ),
+            }
+        )
+
+    readiness_counts = Counter(candidate["readiness"] for candidate in candidates)
+    return {
+        "source": metadata_exports["source"],
+        "summary": {
+            "candidate_count": len(candidates),
+            "blocked_candidate_count": sum(
+                1 for candidate in candidates if candidate["readiness"].startswith("blocked")
+            ),
+            "total_candidate_tasks": sum(candidate["task_count"] for candidate in candidates),
+            "total_dependency_edges": sum(candidate["dependency_count"] for candidate in candidates),
+            "readiness": dict(readiness_counts.most_common()),
+        },
+        "candidates": sorted(
+            candidates,
+            key=lambda candidate: (
+                candidate["recommended_wave"],
+                candidate["batch_group"],
+                candidate["data_process"],
+            ),
+        ),
+    }
+
+
+def build_databricks_workflow_task_specs(metadata_exports: dict) -> dict:
+    workflow_overrides = load_workflow_overrides(WORKFLOW_CONFIG)
+    pilot_processes = [
+        process
+        for process in metadata_exports["resolved_processes"]
+        if process.is_enabled == "1"
+        and process.batch_group == "daily"
+        and process.data_process == "silver"
+        and process.path_resolution == "resolved_notebook"
+    ]
+    pilot_processes = sorted(
+        pilot_processes,
+        key=lambda process: (
+            process.data_source_name,
+            process.target_object,
+            int(process.data_process_id or 0),
+        ),
+    )
+    pilot_spec = build_daily_silver_workflow_task_spec(
+        pilot_processes,
+        name="dw2023_daily_silver_pilot",
+        status="design_spec_not_deployed",
+        shard_task_prefix="for_each_daily_silver_shard",
+        iteration_task_prefix="bronze_to_silver_iteration",
+        iteration_concurrency=8,
+    )
+    smoke_processes = select_daily_silver_smoke_processes(pilot_processes, limit=10)
+    smoke_spec = build_daily_silver_workflow_task_spec(
+        smoke_processes,
+        name="dw2023_daily_silver_smoke",
+        status="smoke_spec_not_deployed",
+        shard_task_prefix="for_each_daily_silver_smoke_shard",
+        iteration_task_prefix="bronze_to_silver_smoke_iteration",
+        iteration_concurrency=4,
+    )
+    specs = [spec for spec in [pilot_spec, smoke_spec] if spec]
+    for spec in specs:
+        spec["dev_bundle_resource_candidate"] = build_dev_bundle_resource_candidate(
+            spec, workflow_overrides
+        )
+
+    return {
+        "source": metadata_exports["source"],
+        "summary": {
+            "spec_count": len(specs),
+            "pilot": pilot_spec["name"] if pilot_spec else "",
+            "pilot_task_count": pilot_spec["task_count"] if pilot_spec else 0,
+            "pilot_shard_count": pilot_spec["shard_count"] if pilot_spec else 0,
+            "smoke": smoke_spec["name"] if smoke_spec else "",
+            "smoke_task_count": smoke_spec["task_count"] if smoke_spec else 0,
+            "smoke_shard_count": smoke_spec["shard_count"] if smoke_spec else 0,
+            "dev_bundle_resource_candidate_count": len(specs),
+        },
+        "specs": specs,
+    }
+
+
+def build_daily_silver_workflow_task_spec(
+    processes: list[ResolvedDataProcessRecord],
+    name: str,
+    status: str,
+    shard_task_prefix: str,
+    iteration_task_prefix: str,
+    iteration_concurrency: int,
+) -> dict | None:
+    if not processes:
+        return None
+
+    iteration_inputs = [silver_iteration_input(process) for process in processes]
+    shards = shard_iteration_inputs(iteration_inputs, max_payload_chars=9000)
+    notebook_path = databricks_workspace_notebook_path(processes[0].notebook_path)
+    tasks = []
+    for index, shard in enumerate(shards, start=1):
+        task_key = f"{shard_task_prefix}_{index:03d}"
+        task = {
+            "task_key": task_key,
+            "run_if": "ALL_SUCCESS",
+            "for_each_task": {
+                "concurrency": iteration_concurrency,
+                "inputs": json.dumps(shard, separators=(",", ":"), sort_keys=True),
+                "task": {
+                    "task_key": f"{iteration_task_prefix}_{index:03d}",
+                    "notebook_task": {
+                        "notebook_path": notebook_path,
+                        "base_parameters": {
+                            "object_schema": "{{input.object_schema}}",
+                            "object_name": "{{input.object_name}}",
+                            "primary_key_column_list": "{{input.primary_key_column_list}}",
+                            "is_incremental": "{{input.is_incremental}}",
+                            "pii_columns": "{{input.pii_columns}}",
+                            "etl_silver_timestamp": "{{job.parameters.etl_silver_timestamp}}",
+                            "project_id_column": "{{input.project_id_column}}",
+                            "julian_date_columns": "{{input.julian_date_columns}}",
+                            "is_full_load": "{{job.parameters.is_full_load}}",
+                            "is_snapshot": "{{input.is_snapshot}}",
+                            "snapshot_period": "{{input.snapshot_period}}",
+                            "debug_flag": "{{job.parameters.debug_flag}}",
+                            "partition_by": "{{input.partition_by}}",
+                        },
+                        "source": "WORKSPACE",
+                    },
+                    "timeout_seconds": 0,
+                    "email_notifications": {},
+                    "webhook_notifications": {},
+                },
+            },
+            "timeout_seconds": 0,
+            "email_notifications": {},
+            "webhook_notifications": {},
+        }
+        if index > 1:
+            task["depends_on"] = [{"task_key": f"{shard_task_prefix}_{index - 1:03d}"}]
+        tasks.append(task)
+
+    shard_summaries = [
+        {
+            "task_key": task["task_key"],
+            "iteration_count": len(shard),
+            "payload_chars": len(json.dumps(shard, separators=(",", ":"), sort_keys=True)),
+            "first_target": shard[0]["target_object"] if shard else "",
+            "last_target": shard[-1]["target_object"] if shard else "",
+        }
+        for task, shard in zip(tasks, shards)
+    ]
+
+    return {
+        "name": name,
+        "candidate_name": "dw2023_daily_silver",
+        "status": status,
+        "task_count": len(processes),
+        "shard_count": len(shards),
+        "notebook_path": notebook_path,
+        "max_iterations_per_shard": max(len(shard) for shard in shards),
+        "max_shard_payload_chars": max(
+            len(json.dumps(shard, separators=(",", ":"), sort_keys=True))
+            for shard in shards
+        ),
+        "iteration_concurrency_per_shard": iteration_concurrency,
+        "shard_execution": "sequential",
+        "design_rationale": [
+            "Uses Databricks For each tasks to preserve object-level task visibility.",
+            "Shards input arrays to stay below documented Databricks job parameter and For each input limits.",
+            "Chains shards sequentially so total concurrent notebook iterations are bounded by the shard concurrency.",
+            "Keeps the existing bronze_to_silver notebook parameter contract intact for the pilot.",
+        ],
+        "validation_gates": [
+            "Confirm deployed notebook path and source are valid in dev, test, and prod.",
+            "Confirm cluster, serverless, policy, or warehouse settings before deployment.",
+            "Confirm retry, timeout, notification, and run_as ownership with operations.",
+            "Run a small subset shard in development before enabling all 457 metadata rows.",
+            "Reconcile row counts and operation logs against the equivalent ADF daily silver run.",
+        ],
+        "shards": shard_summaries,
+        "resource": {
+            "resources": {
+                "jobs": {
+                    name: {
+                        "name": name,
+                        "email_notifications": {
+                            "no_alert_for_skipped_runs": False,
+                        },
+                        "webhook_notifications": {},
+                        "timeout_seconds": 0,
+                        "max_concurrent_runs": 1,
+                        "tasks": tasks,
+                        "queue": {"enabled": True},
+                        "parameters": [
+                            {
+                                "name": "debug_flag",
+                                "default": "false",
+                            },
+                            {
+                                "name": "etl_silver_timestamp",
+                                "default": "{{job.start_time.iso_datetime}}",
+                            },
+                            {
+                                "name": "is_full_load",
+                                "default": "0",
+                            },
+                        ],
+                        "performance_target": "PERFORMANCE_OPTIMIZED",
+                        "run_as": {
+                            "service_principal_name": "${var.run_as_sp}",
+                        },
+                    }
+                }
+            }
+        },
+        "iteration_inputs": iteration_inputs,
+    }
+
+
+def silver_iteration_input(process: ResolvedDataProcessRecord) -> dict:
+    return {
+        "data_process_id": process.data_process_id,
+        "data_source_id": process.data_source_id,
+        "data_source_name": process.data_source_name,
+        "source_type": process.data_source_type,
+        "target_object": process.target_object,
+        "object_schema": process.target_object.split(".", 1)[0] if "." in process.target_object else "",
+        "object_name": process.target_object.split(".", 1)[1] if "." in process.target_object else "",
+        "primary_key_column_list": process.primary_key_columns,
+        "is_incremental": process.is_incremental,
+        "pii_columns": process.pii_columns,
+        "project_id_column": process.project_id_column,
+        "julian_date_columns": process.silver_julian_date_columns,
+        "is_snapshot": process.silver_is_snapshot,
+        "snapshot_period": process.silver_snapshot_period,
+        "partition_by": process.partition_by,
+        "watermark_column": process.watermark_column,
+    }
+
+
+def select_daily_silver_smoke_processes(
+    processes: list[ResolvedDataProcessRecord],
+    limit: int,
+) -> list[ResolvedDataProcessRecord]:
+    selected: list[ResolvedDataProcessRecord] = []
+    selected_ids: set[str] = set()
+
+    def add_first_matching(predicate) -> None:
+        if len(selected) >= limit:
+            return
+        for process in processes:
+            if process.id in selected_ids:
+                continue
+            if predicate(process):
+                selected.append(process)
+                selected_ids.add(process.id)
+                return
+
+    source_type_priority = [
+        "Azure SQL Database",
+        "SQL Server",
+        "REST API",
+        "Sharepoint List",
+        "Azure SQL Database - SDAT Web App",
+        "SOAP API",
+        "File System",
+        "API",
+        "SFTP File",
+    ]
+    for source_type in source_type_priority:
+        add_first_matching(lambda process, source_type=source_type: process.data_source_type == source_type)
+
+    add_first_matching(lambda process: process.is_incremental == "1")
+    add_first_matching(lambda process: bool(process.pii_columns))
+    add_first_matching(lambda process: bool(process.partition_by))
+
+    for process in processes:
+        if len(selected) >= limit:
+            break
+        if process.id not in selected_ids:
+            selected.append(process)
+            selected_ids.add(process.id)
+
+    return selected
+
+
+def build_dev_bundle_resource_candidate(spec: dict, overrides: dict) -> dict:
+    settings = workflow_candidate_settings(spec["name"], overrides)
+    resource = json.loads(json.dumps(spec["resource"]))
+    job = resource["resources"]["jobs"][spec["name"]]
+    job["name"] = f"{spec['name']}_dev_candidate"
+    job["tags"] = {
+        "architecture_lens": "generated",
+        "candidate": spec["candidate_name"],
+        "target_environment": "dev",
+        "migration_status": "candidate_not_deployed",
+        "compute_policy": settings["dev_compute_policy"],
+        "owner": settings["workflow_owner"],
+    }
+    job["schedule"] = {
+        "quartz_cron_expression": settings["schedule_quartz_cron_expression"],
+        "timezone_id": settings["schedule_timezone_id"],
+        "pause_status": settings["pause_status"],
+    }
+    job["email_notifications"] = {
+        "no_alert_for_skipped_runs": False,
+        "on_failure": [
+            settings["dev_notification_destination"],
+        ],
+    }
+    job["webhook_notifications"] = {}
+
+    for task in job["tasks"]:
+        task["max_retries"] = settings["max_retries"]
+        task["min_retry_interval_millis"] = settings["min_retry_interval_millis"]
+        task["retry_on_timeout"] = settings["retry_on_timeout"]
+        nested_task = task["for_each_task"]["task"]
+        nested_task["max_retries"] = settings["max_retries"]
+        nested_task["min_retry_interval_millis"] = settings["min_retry_interval_millis"]
+        nested_task["retry_on_timeout"] = settings["retry_on_timeout"]
+        nested_task["description"] = (
+            "Generated daily silver pilot iteration. Confirm compute binding before deployment."
+        )
+
+    return resource
+
+
+def load_workflow_overrides(path: Path) -> dict:
+    if not path.exists():
+        return {}
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def workflow_candidate_settings(spec_name: str, overrides: dict) -> dict:
+    defaults = {
+        "dev_compute_policy": "TODO_CONFIRM_DEV_COMPUTE_POLICY",
+        "dev_notification_destination": "TODO_CONFIRM_DEV_NOTIFICATION_DESTINATION",
+        "workflow_owner": "TODO_CONFIRM_WORKFLOW_OWNER",
+        "schedule_quartz_cron_expression": "0 0 6 ? * * *",
+        "schedule_timezone_id": "America/Phoenix",
+        "pause_status": "PAUSED",
+        "max_retries": 1,
+        "min_retry_interval_millis": 300000,
+        "retry_on_timeout": False,
+    }
+    configured_defaults = overrides.get("default", {}) if isinstance(overrides, dict) else {}
+    configured_jobs = overrides.get("jobs", {}) if isinstance(overrides, dict) else {}
+    configured_job = configured_jobs.get(spec_name, {}) if isinstance(configured_jobs, dict) else {}
+    return {**defaults, **configured_defaults, **configured_job}
+
+
+def shard_iteration_inputs(inputs: list[dict], max_payload_chars: int) -> list[list[dict]]:
+    shards: list[list[dict]] = []
+    current: list[dict] = []
+    for item in inputs:
+        proposed = current + [item]
+        if (
+            current
+            and len(json.dumps(proposed, separators=(",", ":"), sort_keys=True))
+            > max_payload_chars
+        ):
+            shards.append(current)
+            current = [item]
+        else:
+            current = proposed
+    if current:
+        shards.append(current)
+    return shards
+
+
+def databricks_workspace_notebook_path(path: str) -> str:
+    without_extension = path.removesuffix(".py")
+    if without_extension.startswith("notebooks/"):
+        return "/Workspace/" + without_extension.removeprefix("notebooks/")
+    if without_extension.startswith("/Workspace/"):
+        return without_extension
+    if without_extension.startswith("/"):
+        return "/Workspace" + without_extension
+    return "/Workspace/" + without_extension
+
+
+def workflow_candidate_name(batch_group: str, data_process: str) -> str:
+    value = f"dw2023_{batch_group}_{data_process}".lower()
+    return re.sub(r"[^a-z0-9_]+", "_", value).strip("_")
+
+
+def normalize_object_key(value: str) -> str:
+    return re.sub(r"\s+", "", str(value or "").strip().lower())
+
+
 def graph_id(kind: str, value: str) -> str:
     normalized = re.sub(r"[^A-Za-z0-9_.-]+", "-", str(value).strip()).strip("-")
     return f"{kind}:{normalized or 'unknown'}"
@@ -1103,6 +2005,7 @@ def is_dynamic_expression(value: str) -> bool:
 
 def write_outputs(inventory: dict) -> None:
     LENS_METADATA.mkdir(parents=True, exist_ok=True)
+    WORKFLOW_SPECS.mkdir(parents=True, exist_ok=True)
     (LENS_METADATA / "inventory.json").write_text(
         json.dumps(make_json_safe(inventory), indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
@@ -1127,6 +2030,47 @@ def write_outputs(inventory: dict) -> None:
         + "\n",
         encoding="utf-8",
     )
+    (LENS_METADATA / "metadata-exports.json").write_text(
+        json.dumps(
+            make_json_safe(inventory["metadata_exports"]),
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (LENS_METADATA / "databricks-workflow-candidates.json").write_text(
+        json.dumps(
+            make_json_safe(inventory["databricks_workflow_candidates"]),
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (WORKFLOW_SPECS / "databricks-workflow-task-specs.json").write_text(
+        json.dumps(
+            make_json_safe(inventory["databricks_workflow_task_specs"]),
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    for spec in inventory["databricks_workflow_task_specs"]["specs"]:
+        (WORKFLOW_SPECS / f"{spec['name']}.job-resource.json").write_text(
+            json.dumps(
+                make_json_safe(spec["resource"]),
+                indent=2,
+                sort_keys=True,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        (WORKFLOW_SPECS / f"{spec['name']}.dev.bundle-resource.yml").write_text(
+            bundle_candidate_yaml(spec),
+            encoding="utf-8",
+        )
 
     write_repository_inventory(inventory)
     write_notebook_catalog(inventory)
@@ -1134,10 +2078,34 @@ def write_outputs(inventory: dict) -> None:
     write_job_catalog(inventory)
     write_adf_orchestration_catalog(inventory)
     write_metadata_dependency_catalog(inventory)
+    write_resolved_metadata_catalog(inventory)
+    write_metadata_process_dependencies(inventory)
     write_current_flow_graph(inventory)
     write_orchestration_migration_plan(inventory)
     write_dynamic_resolution_plan(inventory)
     write_adf_migration_waves(inventory)
+    write_databricks_workflow_candidates(inventory)
+    write_daily_silver_pilot_spec(inventory)
+
+
+def bundle_candidate_yaml(spec: dict) -> str:
+    header = "\n".join(
+        [
+            "# Generated by tools/generate_inventory.py.",
+            "# Dev-only Databricks Asset Bundle resource candidate.",
+            "# Keep paused until compute, identity, notifications, retry behavior, and schedule are approved.",
+            "# Copy into the Databricks bundle resources directory only after replacing TODO placeholders.",
+            "",
+        ]
+    )
+    document = make_json_safe(spec["dev_bundle_resource_candidate"])
+    try:
+        import yaml
+
+        body = yaml.safe_dump(document, sort_keys=False, width=100000)
+    except ImportError:
+        body = json.dumps(document, indent=2, sort_keys=False)
+    return header + body
 
 
 def write_repository_inventory(inventory: dict) -> None:
@@ -1169,6 +2137,15 @@ def write_repository_inventory(inventory: dict) -> None:
         f"| ADF integration runtimes | {summary['adf_integration_runtimes']} |",
         f"| ADF metadata queries | {summary['adf_metadata_queries']} |",
         f"| ADF metadata item fields | {summary['adf_metadata_field_usages']} |",
+        f"| Exported metadata source rows | {summary['metadata_datasource_rows']} |",
+        f"| Exported metadata process rows | {summary['metadata_dataprocess_rows']} |",
+        f"| Exported metadata dependency rows | {summary['metadata_dependency_rows']} |",
+        f"| Resolved metadata notebook paths | {summary['metadata_resolved_notebook_paths']} |",
+        f"| Unresolved metadata notebook paths | {summary['metadata_unresolved_notebook_paths']} |",
+        f"| Databricks workflow candidates | {summary['databricks_workflow_candidates']} |",
+        f"| Blocked Databricks workflow candidates | {summary['databricks_workflow_candidate_blockers']} |",
+        f"| Databricks workflow task specs | {summary['databricks_workflow_task_specs']} |",
+        f"| Databricks dev bundle resource candidates | {summary['databricks_dev_bundle_resource_candidates']} |",
         f"| Flow graph nodes | {inventory['flow_graph']['summary']['node_count']} |",
         f"| Flow graph edges | {inventory['flow_graph']['summary']['edge_count']} |",
         "",
@@ -1601,6 +2578,206 @@ def write_metadata_dependency_catalog(inventory: dict) -> None:
     write_markdown(BOOK_SRC / "data" / "metadata-dependency-catalog.md", lines)
 
 
+def write_resolved_metadata_catalog(inventory: dict) -> None:
+    metadata = inventory["metadata_exports"]
+    processes = metadata["resolved_processes"]
+    path_resolution = Counter(inventory["counts"]["metadata_path_resolution"])
+    source_types = Counter(inventory["counts"]["metadata_source_types"])
+    process_types = Counter(inventory["counts"]["metadata_process_types"])
+    enabled_processes = [record for record in processes if record["is_enabled"] == "1"]
+    unresolved_processes = [
+        record for record in enabled_processes if record["path_resolution"] == "unresolved_notebook_path"
+    ]
+    unresolved_by_subject = Counter(record["subject_area"] for record in unresolved_processes)
+
+    lines = [
+        "# Resolved Metadata Catalog",
+        "",
+        f"Generated from CSV exports in `{metadata['source']}` on {inventory['generated_on']}.",
+        "",
+        "This catalog joins exported `DataProcess` rows to `DataSource` rows and attempts to resolve each `dataProcessPathOrProcedure` to a Databricks notebook discovered in the repository archive.",
+        "",
+        "## Exported table counts",
+        "",
+        "| Table | Rows | Columns |",
+        "|---|---:|---:|",
+    ]
+    for table_name, table in metadata["tables"].items():
+        lines.append(f"| `{md(table_name)}` | {table['row_count']} | {len(table['columns'])} |")
+
+    lines.extend(["", "## Path resolution", "", "| Status | Process rows |", "|---|---:|"])
+    for status, count in path_resolution.most_common():
+        lines.append(f"| {md(status)} | {count} |")
+
+    lines.extend(["", "## Source types", "", "| Source type | Source rows |", "|---|---:|"])
+    for source_type, count in source_types.most_common():
+        lines.append(f"| {md(source_type or 'Unspecified')} | {count} |")
+
+    lines.extend(["", "## Process types", "", "| Process type | Rows |", "|---|---:|"])
+    for process_type, count in process_types.most_common():
+        lines.append(f"| {md(process_type or 'Unspecified')} | {count} |")
+
+    if unresolved_processes:
+        lines.extend(
+            [
+                "",
+                "## Unresolved notebook paths",
+                "",
+                "These enabled metadata rows reference Databricks-style notebook paths that were not found in the Databricks repository archive. Treat them as migration blockers until the source notebooks are recovered, replaced, or retired.",
+                "",
+                "| Subject area | Missing paths |",
+                "|---|---:|",
+            ]
+        )
+        for subject_area, count in unresolved_by_subject.most_common():
+            lines.append(f"| {md(subject_area or 'Unspecified')} | {count} |")
+
+        lines.extend(
+            [
+                "",
+                "| ID | Target | Metadata path |",
+                "|---|---|---|",
+            ]
+        )
+        for record in unresolved_processes:
+            lines.append(
+                "| "
+                + " | ".join(
+                    [
+                        md(record["id"]),
+                        md(record["target_object"]),
+                        md(record["data_process_path_or_procedure"]),
+                    ]
+                )
+                + " |"
+            )
+
+    lines.extend(
+        [
+            "",
+            "## Enabled process index",
+            "",
+            "| ID | Process | Batch | Source | Source type | Target | Path status | Notebook | Incremental |",
+            "|---|---|---|---|---|---|---|---|---|",
+        ]
+    )
+    for record in enabled_processes:
+        notebook = (
+            f"`{md(record['notebook_path'])}`"
+            if record["notebook_path"]
+            else md(record["data_process_path_or_procedure"] or "None")
+        )
+        lines.append(
+            "| "
+            + " | ".join(
+                [
+                    md(record["id"]),
+                    md(record["data_process"]),
+                    md(record["batch_group"]),
+                    md(record["data_source_name"]),
+                    md(record["data_source_type"]),
+                    md(record["target_object"]),
+                    md(record["path_resolution"]),
+                    notebook,
+                    md(record["is_incremental"]),
+                ]
+            )
+            + " |"
+        )
+
+    lines.extend(
+        [
+            "",
+            "## Validation focus",
+            "",
+            "- Review `unresolved_notebook_path`, `external_workspace_path`, and `procedure_or_sql` rows before generating Databricks jobs.",
+            "- Confirm whether disabled rows represent retired, future, manual, or environment-specific processing.",
+            "- Verify source type and batch group values with domain owners before using them as migration waves.",
+            "- Treat `lastExecutionTimestamp` as metadata evidence only; reconcile with Databricks and ADF run history.",
+            "",
+            "The machine-readable export summary is `architecture-lens/metadata/metadata-exports.json`.",
+        ]
+    )
+
+    write_markdown(BOOK_SRC / "data" / "resolved-metadata-catalog.md", lines)
+
+
+def write_metadata_process_dependencies(inventory: dict) -> None:
+    metadata = inventory["metadata_exports"]
+    dependencies = metadata["dependencies"]
+    enabled_dependencies = [record for record in dependencies if record["is_enabled"] == "1"]
+    by_process = Counter(record["data_process"] for record in enabled_dependencies)
+    by_target_schema = Counter(
+        record["target_object"].split(".", 1)[0]
+        for record in enabled_dependencies
+        if record["target_object"]
+    )
+
+    lines = [
+        "# Metadata Process Dependencies",
+        "",
+        f"Generated from `metadata/dataprocessdependency.csv` on {inventory['generated_on']}.",
+        "",
+        "This page records current metadata-defined process dependencies. These records are the primary input for converting ADF `ExecutePipeline` and metadata fan-out behavior into Databricks task dependencies.",
+        "",
+        "## Summary",
+        "",
+        "| Metric | Count |",
+        "|---|---:|",
+        f"| Dependency rows | {len(dependencies)} |",
+        f"| Enabled dependency rows | {len(enabled_dependencies)} |",
+        "",
+        "## Enabled dependencies by process",
+        "",
+        "| Process | Dependencies |",
+        "|---|---:|",
+    ]
+    for process, count in by_process.most_common():
+        lines.append(f"| {md(process or 'Unspecified')} | {count} |")
+
+    lines.extend(["", "## Top target schemas", "", "| Target schema | Dependencies |", "|---|---:|"])
+    for schema, count in by_target_schema.most_common(25):
+        lines.append(f"| `{md(schema)}` | {count} |")
+
+    lines.extend(
+        [
+            "",
+            "## Enabled dependency index",
+            "",
+            "| ID | Process | Source object | Target object | Test promote | Prod promote |",
+            "|---|---|---|---|---|---|",
+        ]
+    )
+    for record in enabled_dependencies:
+        lines.append(
+            "| "
+            + " | ".join(
+                [
+                    md(record["id"]),
+                    md(record["data_process"]),
+                    md(record["source_object"] or "None"),
+                    md(record["target_object"] or "None"),
+                    md(record["is_test_promote_environment"]),
+                    md(record["is_prod_promote_environment"]),
+                ]
+            )
+            + " |"
+        )
+
+    lines.extend(
+        [
+            "",
+            "## Migration use",
+            "",
+            "- Convert enabled dependency rows into Databricks task dependencies after source and target objects resolve to concrete tasks.",
+            "- Preserve dependency direction and disabled-state semantics during migration planning.",
+            "- Validate rows with null source objects; they may represent seed, dimension, or externally satisfied dependencies.",
+        ]
+    )
+
+    write_markdown(BOOK_SRC / "data" / "metadata-process-dependencies.md", lines)
+
+
 def write_current_flow_graph(inventory: dict) -> None:
     graph = inventory["flow_graph"]
     flow_summaries = graph["flow_summaries"]
@@ -1628,23 +2805,52 @@ def write_current_flow_graph(inventory: dict) -> None:
         f"| ADF pipelines | {graph['summary']['pipeline_count']} |",
         f"| Started trigger records | {len(active_flows)} |",
         "",
-        "## Edge semantics",
+        "## Node types",
         "",
-        "| Edge type | Meaning |",
-        "|---|---|",
-        "| `schedules` | A trigger starts a root pipeline |",
-        "| `contains_activity` | A pipeline contains an ADF activity |",
-        "| `depends_on` | An ADF activity depends on another activity in the same pipeline |",
-        "| `executes_pipeline` / `calls_pipeline` | An activity or pipeline invokes a child pipeline |",
-        "| `runs_notebook` / `invokes_notebook` | An activity or pipeline invokes a Databricks notebook path |",
-        "| `runs_databricks_job` / `invokes_databricks_job` | An activity or pipeline invokes a Databricks job reference |",
-        "| `uses_dataset` / `uses_linked_service` | ADF execution uses a dataset or linked service |",
-        "",
-        "## Trigger flow summaries",
-        "",
-        "| Trigger | State | Root pipelines | Reachable pipelines | Activities | Notebooks | Job refs | Datasets | Services | Complexity | Recommended wave |",
-        "|---|---|---:|---:|---:|---:|---:|---:|---:|---|---|",
+        "| Node type | Count |",
+        "|---|---:|",
     ]
+    for node_type, count in graph["summary"]["node_types"].items():
+        lines.append(f"| `{md(node_type)}` | {count} |")
+
+    lines.extend(
+        [
+            "",
+            "## Edge types",
+            "",
+            "| Edge type | Count |",
+            "|---|---:|",
+        ]
+    )
+    for edge_type, count in graph["summary"]["edge_types"].items():
+        lines.append(f"| `{md(edge_type)}` | {count} |")
+
+    lines.extend(
+        [
+            "",
+            "## Edge semantics",
+            "",
+            "| Edge type | Meaning |",
+            "|---|---|",
+            "| `schedules` | A trigger starts a root pipeline |",
+            "| `contains_activity` | A pipeline contains an ADF activity |",
+            "| `depends_on` | An ADF activity depends on another activity in the same pipeline |",
+            "| `executes_pipeline` / `calls_pipeline` | An activity or pipeline invokes a child pipeline |",
+            "| `runs_notebook` / `invokes_notebook` | An activity or pipeline invokes a Databricks notebook path |",
+            "| `runs_databricks_job` / `invokes_databricks_job` | An activity or pipeline invokes a Databricks job reference |",
+            "| `uses_dataset` / `uses_linked_service` | ADF execution uses a dataset or linked service |",
+            "| `reads_source_metadata` | A metadata process reads source-system configuration from a `DataSource` row |",
+            "| `reads_object` / `produces_object` | A metadata process reads or produces a warehouse object |",
+            "| `references_notebook_path` | A metadata process references a notebook/procedure path that is not resolved to a source file |",
+            "| `depends_on_metadata_process` | A metadata dependency maps to an upstream metadata process |",
+            "| `depends_on_object` / `depends_on_external_object` | A target object or process depends on an object without a resolved process edge |",
+            "",
+            "## Trigger flow summaries",
+            "",
+            "| Trigger | State | Root pipelines | Reachable pipelines | Activities | Notebooks | Job refs | Datasets | Services | Complexity | Recommended wave |",
+            "|---|---|---:|---:|---:|---:|---:|---:|---:|---|---|",
+        ]
+    )
 
     for summary in flow_summaries:
         lines.append(
@@ -1697,7 +2903,7 @@ def write_current_flow_graph(inventory: dict) -> None:
             "",
             "## Known limitations",
             "",
-            "- Dynamic notebook paths such as `@item().dataProcessPathOrProcedure` are preserved as expressions until metadata-table evidence is loaded.",
+            "- Dynamic ADF notebook paths are preserved as current-state ADF expressions; resolved metadata process rows are represented separately as concrete metadata process nodes.",
             "- Repository trigger `runtimeState` may not match deployed production state.",
             "- ADF `Copy` activity source and sink semantics require dataset and linked-service parameter resolution before final data movement records are generated.",
             "- The graph captures orchestration topology, not row-level lineage or business transformation rules.",
@@ -1960,6 +3166,344 @@ def write_adf_migration_waves(inventory: dict) -> None:
     )
 
     write_markdown(BOOK_SRC / "modernization" / "adf-migration-waves.md", lines)
+
+
+def write_databricks_workflow_candidates(inventory: dict) -> None:
+    workflow_candidates = inventory["databricks_workflow_candidates"]
+    candidates = workflow_candidates["candidates"]
+    summary = workflow_candidates["summary"]
+    blocked_candidates = [
+        candidate
+        for candidate in candidates
+        if candidate["readiness"].startswith("blocked")
+        or candidate["unresolved_notebook_task_count"]
+    ]
+
+    lines = [
+        "# Databricks Workflow Candidates",
+        "",
+        f"Generated from resolved metadata exports on {inventory['generated_on']}.",
+        "",
+        "This page translates active `DataProcess` and `DataProcessDependency` rows into initial Databricks workflow candidates. It is a design artifact for replacing ADF metadata fan-out with Databricks-native job/task orchestration.",
+        "",
+        "## Summary",
+        "",
+        "| Metric | Count |",
+        "|---|---:|",
+        f"| Workflow candidates | {summary['candidate_count']} |",
+        f"| Candidate tasks | {summary['total_candidate_tasks']} |",
+        f"| Candidate dependency edges | {summary['total_dependency_edges']} |",
+        f"| Blocked candidates | {summary['blocked_candidate_count']} |",
+        "",
+        "## Readiness",
+        "",
+        "| Readiness | Candidates |",
+        "|---|---:|",
+    ]
+    for readiness, count in summary["readiness"].items():
+        lines.append(f"| {md(readiness)} | {count} |")
+
+    lines.extend(
+        [
+            "",
+            "## Candidate index",
+            "",
+            "| Candidate | Batch | Process | Tasks | Resolved | Missing notebooks | Dependencies | Pattern | Readiness | Wave |",
+            "|---|---|---|---:|---:|---:|---:|---|---|---|",
+        ]
+    )
+    for candidate in candidates:
+        lines.append(
+            "| "
+            + " | ".join(
+                [
+                    f"`{md(candidate['name'])}`",
+                    md(candidate["batch_group"]),
+                    md(candidate["data_process"]),
+                    str(candidate["task_count"]),
+                    str(candidate["resolved_notebook_task_count"]),
+                    str(candidate["unresolved_notebook_task_count"]),
+                    str(candidate["dependency_count"]),
+                    md(candidate["recommended_pattern"]),
+                    md(candidate["readiness"]),
+                    md(candidate["recommended_wave"]),
+                ]
+            )
+            + " |"
+        )
+
+    lines.extend(
+        [
+            "",
+            "## Dependency shape",
+            "",
+            "| Candidate | Internal dependencies | External dependencies | Root records | Missing target dependencies |",
+            "|---|---:|---:|---:|---:|",
+        ]
+    )
+    for candidate in candidates:
+        lines.append(
+            "| "
+            + " | ".join(
+                [
+                    f"`{md(candidate['name'])}`",
+                    str(candidate["internal_dependency_count"]),
+                    str(candidate["external_dependency_count"]),
+                    str(candidate["root_dependency_count"]),
+                    str(candidate["missing_target_dependency_count"]),
+                ]
+            )
+            + " |"
+        )
+
+    if blocked_candidates:
+        lines.extend(
+            [
+                "",
+                "## Migration blockers",
+                "",
+                "| Candidate | Missing notebook paths |",
+                "|---|---|",
+            ]
+        )
+        for candidate in blocked_candidates:
+            missing_paths = "<br>".join(
+                f"`{md(path)}`" for path in candidate["missing_notebook_paths"]
+            )
+            lines.append(
+                "| "
+                + " | ".join(
+                    [
+                        f"`{md(candidate['name'])}`",
+                        missing_paths or "None",
+                    ]
+                )
+                + " |"
+            )
+
+    lines.extend(
+        [
+            "",
+            "## Design use",
+            "",
+            "- Use these candidates to decide whether each process layer becomes a generated Databricks workflow, a driver-notebook fan-out, or a smaller set of domain workflows.",
+            "- Resolve missing notebook artifacts before creating production job definitions.",
+            "- Validate Databricks workflow task limits, concurrency, retry behavior, notifications, and run-as identity before deployment.",
+            "- Keep ADF trigger-flow waves and metadata workflow candidates linked during planning; they answer different migration questions.",
+            "",
+            "The machine-readable candidate file is `architecture-lens/metadata/databricks-workflow-candidates.json`.",
+        ]
+    )
+
+    write_markdown(BOOK_SRC / "modernization" / "databricks-workflow-candidates.md", lines)
+
+
+def write_daily_silver_pilot_spec(inventory: dict) -> None:
+    specs = inventory["databricks_workflow_task_specs"]["specs"]
+    spec = next((record for record in specs if record["name"] == "dw2023_daily_silver_pilot"), None)
+    smoke_spec = next(
+        (record for record in specs if record["name"] == "dw2023_daily_silver_smoke"),
+        None,
+    )
+    if not spec:
+        return
+
+    source_types = Counter(item["source_type"] or "Unspecified" for item in spec["iteration_inputs"])
+    incremental = Counter(item["is_incremental"] or "Unspecified" for item in spec["iteration_inputs"])
+
+    lines = [
+        "# Daily Silver Databricks Pilot Spec",
+        "",
+        f"Generated from resolved metadata exports on {inventory['generated_on']}.",
+        "",
+        "This page is the first concrete Databricks-native workflow specification for migrating ADF metadata fan-out. It targets the `dw2023_daily_silver` workflow candidate and preserves the existing `bronze_to_silver` notebook parameter contract.",
+        "",
+        "## Pilot shape",
+        "",
+        "| Signal | Value |",
+        "|---|---:|",
+        f"| Metadata rows | {spec['task_count']} |",
+        f"| Shards | {spec['shard_count']} |",
+        f"| Max iterations per shard | {spec['max_iterations_per_shard']} |",
+        f"| Max shard payload characters | {spec['max_shard_payload_chars']} |",
+        f"| Iteration concurrency per shard | {spec['iteration_concurrency_per_shard']} |",
+        "",
+        "## Job resource",
+        "",
+        "| Field | Value |",
+        "|---|---|",
+        f"| Job name | `{md(spec['name'])}` |",
+        f"| Candidate | `{md(spec['candidate_name'])}` |",
+        f"| Notebook | `{md(spec['notebook_path'])}` |",
+        f"| Status | {md(spec['status'])} |",
+        f"| Shard execution | {md(spec['shard_execution'])} |",
+        "",
+        "## Source type coverage",
+        "",
+        "| Source type | Iterations |",
+        "|---|---:|",
+    ]
+    for source_type, count in source_types.most_common():
+        lines.append(f"| {md(source_type)} | {count} |")
+
+    lines.extend(["", "## Incremental coverage", "", "| Incremental flag | Iterations |", "|---|---:|"])
+    for flag, count in incremental.most_common():
+        lines.append(f"| {md(flag)} | {count} |")
+
+    lines.extend(
+        [
+            "",
+            "## Shards",
+            "",
+            "| Shard task | Iterations | Payload chars | First target | Last target |",
+            "|---|---:|---:|---|---|",
+        ]
+    )
+    for shard in spec["shards"]:
+        lines.append(
+            "| "
+            + " | ".join(
+                [
+                    f"`{md(shard['task_key'])}`",
+                    str(shard["iteration_count"]),
+                    str(shard["payload_chars"]),
+                    md(shard["first_target"]),
+                    md(shard["last_target"]),
+                ]
+            )
+            + " |"
+        )
+
+    if smoke_spec:
+        smoke_source_types = Counter(
+            item["source_type"] or "Unspecified" for item in smoke_spec["iteration_inputs"]
+        )
+        lines.extend(
+            [
+                "",
+                "## Smoke-test subset",
+                "",
+                "The smoke resource is generated from the same metadata but limits the first dev validation run to 10 representative daily silver objects. It is also paused and must not be promoted as the production schedule.",
+                "",
+                "| Signal | Value |",
+                "|---|---:|",
+                f"| Smoke rows | {smoke_spec['task_count']} |",
+                f"| Smoke shards | {smoke_spec['shard_count']} |",
+                f"| Smoke iteration concurrency | {smoke_spec['iteration_concurrency_per_shard']} |",
+                f"| Smoke max payload characters | {smoke_spec['max_shard_payload_chars']} |",
+                "",
+                "### Smoke source coverage",
+                "",
+                "| Source type | Iterations |",
+                "|---|---:|",
+            ]
+        )
+        for source_type, count in smoke_source_types.most_common():
+            lines.append(f"| {md(source_type)} | {count} |")
+
+        lines.extend(
+            [
+                "",
+                "### Smoke targets",
+                "",
+                "| Target | Source type | Incremental |",
+                "|---|---|---|",
+            ]
+        )
+        for item in smoke_spec["iteration_inputs"]:
+            lines.append(
+                "| "
+                + " | ".join(
+                    [
+                        md(item["target_object"]),
+                        md(item["source_type"] or "Unspecified"),
+                        md(item["is_incremental"] or "Unspecified"),
+                    ]
+                )
+                + " |"
+            )
+
+    lines.extend(
+        [
+            "",
+            "## Parameter mapping",
+            "",
+            "| Existing notebook parameter | Pilot source |",
+            "|---|---|",
+            "| `object_schema` | `{{input.object_schema}}` |",
+            "| `object_name` | `{{input.object_name}}` |",
+            "| `primary_key_column_list` | `{{input.primary_key_column_list}}` |",
+            "| `is_incremental` | `{{input.is_incremental}}` |",
+            "| `pii_columns` | `{{input.pii_columns}}` |",
+            "| `etl_silver_timestamp` | `{{job.parameters.etl_silver_timestamp}}` |",
+            "| `project_id_column` | `{{input.project_id_column}}` |",
+            "| `julian_date_columns` | `{{input.julian_date_columns}}` |",
+            "| `is_full_load` | `{{job.parameters.is_full_load}}` |",
+            "| `is_snapshot` | `{{input.is_snapshot}}` |",
+            "| `snapshot_period` | `{{input.snapshot_period}}` |",
+            "| `debug_flag` | `{{job.parameters.debug_flag}}` |",
+            "| `partition_by` | `{{input.partition_by}}` |",
+            "",
+            "## Design rationale",
+            "",
+        ]
+    )
+    lines.extend(f"- {md(item)}" for item in spec["design_rationale"])
+
+    lines.extend(["", "## Validation gates", ""])
+    lines.extend(f"- {md(item)}" for item in spec["validation_gates"])
+
+    lines.extend(
+        [
+            "",
+            "## Dev bundle candidate placeholders",
+            "",
+            "| Placeholder | Required decision |",
+            "|---|---|",
+            "| `TODO_CONFIRM_DEV_COMPUTE_POLICY` | Confirm whether the pilot uses existing serverless behavior, a job cluster, or a governed dev compute policy |",
+            "| `TODO_CONFIRM_DEV_NOTIFICATION_DESTINATION` | Confirm the Databricks notification destination or support mailbox for failed pilot runs |",
+            "| `TODO_CONFIRM_WORKFLOW_OWNER` | Confirm the accountable support owner before the workflow is deployed |",
+            "| Paused schedule | Confirm the dev cron cadence and unpause only after the subset smoke run passes |",
+            "| Retry settings | Confirm whether one retry with five-minute spacing matches current ADF retry semantics |",
+            "",
+            "Copy `architecture-lens/config/workflow-overrides.example.json` to `architecture-lens/config/workflow-overrides.json` and replace the local dev values to regenerate candidates without `TODO_` placeholders. The local override file is ignored by Git.",
+        ]
+    )
+
+    lines.extend(
+        [
+            "",
+            "## Preflight commands",
+            "",
+            "| Command | Purpose | Expected result now |",
+            "|---|---|---|",
+            "| `make validate` | Regenerate evidence, structurally check generated workflow specs, and build docs | Passes with placeholder warnings |",
+            "| `make workflow-preflight` | Run strict deploy-readiness checks on generated dev bundle candidates | Fails until `TODO_` placeholders are replaced |",
+        ]
+    )
+
+    lines.extend(
+        [
+            "",
+            "## Evidence files",
+            "",
+            "- `architecture-lens/workflow-specs/databricks-workflow-task-specs.json` contains the full generated task-spec evidence.",
+            "- `architecture-lens/workflow-specs/dw2023_daily_silver_pilot.job-resource.json` contains the generated Databricks job resource model for this pilot.",
+            "- `architecture-lens/workflow-specs/dw2023_daily_silver_pilot.dev.bundle-resource.yml` contains the dev-only Databricks Asset Bundle resource candidate.",
+            "- `architecture-lens/workflow-specs/dw2023_daily_silver_smoke.job-resource.json` contains the generated smoke-test job resource model.",
+            "- `architecture-lens/workflow-specs/dw2023_daily_silver_smoke.dev.bundle-resource.yml` contains the paused dev-only smoke-test bundle candidate.",
+            "",
+            "## Databricks references",
+            "",
+            "- Databricks Declarative Automation Bundles job task configuration: <https://docs.databricks.com/aws/en/dev-tools/bundles/job-task-types>",
+            "- Databricks For each task behavior and input limits: <https://docs.databricks.com/aws/en/jobs/tasks/for-each>",
+            "- Databricks dynamic value references for job and task parameters: <https://docs.databricks.com/aws/en/jobs/dynamic-value-references>",
+            "",
+            "This is not deployment-ready until compute, identity, alerting, retry, timeout, schedule, and environment-specific governance settings are confirmed.",
+        ]
+    )
+
+    write_markdown(BOOK_SRC / "modernization" / "daily-silver-databricks-pilot.md", lines)
 
 
 def build_job_notebook_relationships(jobs: list[JobRecord]) -> dict[str, list[str]]:

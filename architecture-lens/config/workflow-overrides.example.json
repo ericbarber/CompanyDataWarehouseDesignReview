@@ -1,0 +1,17 @@
+{
+  "default": {
+    "dev_compute_policy": "TODO_CONFIRM_DEV_COMPUTE_POLICY",
+    "dev_notification_destination": "TODO_CONFIRM_DEV_NOTIFICATION_DESTINATION",
+    "workflow_owner": "TODO_CONFIRM_WORKFLOW_OWNER",
+    "schedule_quartz_cron_expression": "0 0 6 ? * * *",
+    "schedule_timezone_id": "America/Phoenix",
+    "pause_status": "PAUSED",
+    "max_retries": 1,
+    "min_retry_interval_millis": 300000,
+    "retry_on_timeout": false
+  },
+  "jobs": {
+    "dw2023_daily_silver_smoke": {},
+    "dw2023_daily_silver_pilot": {}
+  }
+}

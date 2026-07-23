@@ -18,6 +18,8 @@
 - [Data Movement Standard](data/data-movement-standard.md)
 - [Data Movement Register](data/data-movement-register.md)
 - [Metadata Dependency Catalog](data/metadata-dependency-catalog.md)
+- [Resolved Metadata Catalog](data/resolved-metadata-catalog.md)
+- [Metadata Process Dependencies](data/metadata-process-dependencies.md)
 - [Data Products](data/data-products.md)
 
 # 3. Processing Architecture
@@ -47,6 +49,8 @@
 - [ADF to Databricks Orchestration](modernization/adf-to-databricks-orchestration.md)
 - [Dynamic Metadata Resolution](modernization/dynamic-metadata-resolution.md)
 - [ADF Migration Waves](modernization/adf-migration-waves.md)
+- [Databricks Workflow Candidates](modernization/databricks-workflow-candidates.md)
+- [Daily Silver Databricks Pilot Spec](modernization/daily-silver-databricks-pilot.md)
 - [Assessment Register](modernization/assessment-register.md)
 
 # Appendices

@@ -20,8 +20,17 @@
 | ADF integration runtimes | 2 |
 | ADF metadata queries | 140 |
 | ADF metadata item fields | 49 |
-| Flow graph nodes | 2427 |
-| Flow graph edges | 7634 |
+| Exported metadata source rows | 501 |
+| Exported metadata process rows | 907 |
+| Exported metadata dependency rows | 1035 |
+| Resolved metadata notebook paths | 877 |
+| Unresolved metadata notebook paths | 30 |
+| Databricks workflow candidates | 4 |
+| Blocked Databricks workflow candidates | 1 |
+| Databricks workflow task specs | 2 |
+| Databricks dev bundle resource candidates | 2 |
+| Flow graph nodes | 5598 |
+| Flow graph edges | 11410 |
 
 ## Notebook counts by layer
 

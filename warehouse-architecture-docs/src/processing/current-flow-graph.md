@@ -8,11 +8,49 @@ This graph is the current-state execution map used to understand whole data flow
 
 | Metric | Count |
 |---|---:|
-| Nodes | 2427 |
-| Edges | 7634 |
+| Nodes | 5598 |
+| Edges | 11410 |
 | ADF triggers | 35 |
 | ADF pipelines | 118 |
 | Started trigger records | 6 |
+
+## Node types
+
+| Node type | Count |
+|---|---:|
+| `adf_activity` | 2214 |
+| `adf_dataset` | 20 |
+| `adf_linked_service` | 5 |
+| `adf_pipeline` | 118 |
+| `adf_trigger` | 35 |
+| `data_object` | 1360 |
+| `databricks_job` | 2 |
+| `databricks_notebook` | 442 |
+| `metadata_process` | 907 |
+| `metadata_source` | 495 |
+
+## Edge types
+
+| Edge type | Count |
+|---|---:|
+| `calls_pipeline` | 691 |
+| `contains_activity` | 1810 |
+| `depends_on` | 1607 |
+| `depends_on_external_object` | 4 |
+| `depends_on_metadata_process` | 478 |
+| `depends_on_object` | 490 |
+| `executes_pipeline` | 691 |
+| `invokes_databricks_job` | 25 |
+| `invokes_notebook` | 102 |
+| `produces_object` | 907 |
+| `reads_object` | 495 |
+| `reads_source_metadata` | 495 |
+| `references_notebook_path` | 30 |
+| `runs_databricks_job` | 25 |
+| `runs_notebook` | 979 |
+| `schedules` | 41 |
+| `uses_dataset` | 924 |
+| `uses_linked_service` | 1616 |
 
 ## Edge semantics
 
@@ -25,6 +63,11 @@ This graph is the current-state execution map used to understand whole data flow
 | `runs_notebook` / `invokes_notebook` | An activity or pipeline invokes a Databricks notebook path |
 | `runs_databricks_job` / `invokes_databricks_job` | An activity or pipeline invokes a Databricks job reference |
 | `uses_dataset` / `uses_linked_service` | ADF execution uses a dataset or linked service |
+| `reads_source_metadata` | A metadata process reads source-system configuration from a `DataSource` row |
+| `reads_object` / `produces_object` | A metadata process reads or produces a warehouse object |
+| `references_notebook_path` | A metadata process references a notebook/procedure path that is not resolved to a source file |
+| `depends_on_metadata_process` | A metadata dependency maps to an upstream metadata process |
+| `depends_on_object` / `depends_on_external_object` | A target object or process depends on an object without a resolved process edge |
 
 ## Trigger flow summaries
 
@@ -88,7 +131,7 @@ This graph is the current-state execution map used to understand whole data flow
 
 ## Known limitations
 
-- Dynamic notebook paths such as `@item().dataProcessPathOrProcedure` are preserved as expressions until metadata-table evidence is loaded.
+- Dynamic ADF notebook paths are preserved as current-state ADF expressions; resolved metadata process rows are represented separately as concrete metadata process nodes.
 - Repository trigger `runtimeState` may not match deployed production state.
 - ADF `Copy` activity source and sink semantics require dataset and linked-service parameter resolution before final data movement records are generated.
 - The graph captures orchestration topology, not row-level lineage or business transformation rules.
